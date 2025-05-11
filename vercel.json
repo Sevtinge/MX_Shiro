@@ -1,4 +1,31 @@
 {
+
+    "rewrites": [
+    {
+      "source": "/api/v2/:match*",
+      "destination": "https://api-blog.sevtinge.com/api/v2/:match*"
+    },
+    {
+      "source": "/proxy/:match*",
+      "destination": "https://api-blog.sevtinge.com/proxy/:match*"
+    },
+    {
+      "source": "/qaqdmin/:match*",
+      "destination": "https://api-blog.sevtinge.com/proxy/qaqdmin/:match*"
+    },
+    {
+      "source": "/render/:match*",
+      "destination": "https://api-blog.sevtinge.com/render/:match*"
+    },
+    {
+      "source": "/api/v2:match*",
+      "destination": "https://api-blog.sevtinge.comc/api/v2:match*"
+    },
+    {
+      "source": "/socket.io:match*",
+      "destination": "https://api-blog.sevtinge.com/socket.io:match*"
+    }
+  ],
   "headers": [
     {
       "source": "/",
