@@ -23,15 +23,16 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
 
       # If pnpm is used, you need to switch the previous step with the following one. pnpm does not create a package-lock.json
       # so the step above will fail to pull dependencies
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         id: pnpm-install
-        with:
-          run_install: true
+
+      - name: Install dependencies
+        run: pnpm i
 
       - name: Restore next build
         uses: actions/cache@v4
@@ -61,7 +62,7 @@ jobs:
           path: .next/analyze/__bundle_analysis.json
 
       - name: Download base branch bundle stats
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v10
         if: success() && github.event.number
         with:
           workflow: nextjs_bundle_analysis.yml

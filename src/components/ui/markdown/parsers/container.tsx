@@ -2,6 +2,7 @@
 
 import type { MarkdownToJSX } from 'markdown-to-jsx'
 import { Priority } from 'markdown-to-jsx'
+import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 
 import { clsxm } from '~/lib/helper'
 import { WrappedElementProvider } from '~/providers/shared/WrappedElementProvider'
@@ -26,12 +27,19 @@ const shouldCatchContainerName = [
   'note',
 
   'grid',
+  'masonry',
 ].join('|')
 
-export const ContainerRule: MarkdownToJSX.Rule = {
+export const ContainerRule: MarkdownToJSX.Rule<{
+  node: {
+    type: string
+    params: string
+    content: string
+  }
+}> = {
   match: (source: string) => {
     const result =
-      /^\s*::: *(?<type>.*?) *(?:\{(?<params>.*?)\})? *\n(?<content>[\s\S]+?)\s*::: *(?:\n *)+/.exec(
+      /^\s*::: *(?<type>.*?) *(?:\{(?<params>.*?)\} *)?\n(?<content>[\s\S]+?)\s*::: *(?:\n *)+/.exec(
         source,
       )
 
@@ -45,11 +53,11 @@ export const ContainerRule: MarkdownToJSX.Rule = {
   parse(capture) {
     const { groups } = capture
     return {
-      node: { ...groups },
+      node: { ...groups } as any,
     }
   },
 
-  react(node, _, state) {
+  render(node, _, state) {
     const { type, params, content } = node.node
 
     switch (type) {
@@ -93,7 +101,11 @@ export const ContainerRule: MarkdownToJSX.Rule = {
         }
 
         return (
-          <Banner type={params} className="my-4" key={state?.key}>
+          <Banner
+            type={params as 'warn' | 'error' | 'info' | 'success' | 'warning'}
+            className="my-4"
+            key={state?.key}
+          >
             <WrappedElementProvider className="w-full">
               <Markdown
                 value={content}
@@ -110,24 +122,22 @@ export const ContainerRule: MarkdownToJSX.Rule = {
 
         const { cols, gap = 8, rows, type = 'normal' } = parseParams(params)
 
-        const Grid: Component = ({ children, className }) => {
-          return (
-            <div
-              className={clsxm('relative grid w-full', className)}
-              style={{
-                gridTemplateColumns: cols
-                  ? `repeat(${cols}, minmax(0, 1fr))`
-                  : undefined,
-                gap: `${gap}px`,
-                gridTemplateRows: rows
-                  ? `repeat(${rows}, minmax(0, 1fr))`
-                  : undefined,
-              }}
-            >
-              {children}
-            </div>
-          )
-        }
+        const Grid: Component = ({ children, className }) => (
+          <div
+            className={clsxm('relative grid w-full', className)}
+            style={{
+              gridTemplateColumns: cols
+                ? `repeat(${cols}, minmax(0, 1fr))`
+                : undefined,
+              gap: `${gap}px`,
+              gridTemplateRows: rows
+                ? `repeat(${rows}, minmax(0, 1fr))`
+                : undefined,
+            }}
+          >
+            {children}
+          </div>
+        )
         switch (type) {
           case 'normal': {
             return (
@@ -150,7 +160,7 @@ export const ContainerRule: MarkdownToJSX.Rule = {
             return (
               <GridMarkdownImages
                 height={rows && cols ? +rows / +cols : 1}
-                key={state.key}
+                key={state?.key}
                 imagesSrc={imagesSrc}
                 Wrapper={Grid}
               />
@@ -160,6 +170,25 @@ export const ContainerRule: MarkdownToJSX.Rule = {
             return null
           }
         }
+      }
+      case 'masonry': {
+        const { gap = 8 } = parseParams(params)
+        const imagesSrc = pickImagesFromMarkdown(content).map((r) => r.url)
+
+        return (
+          <ResponsiveMasonry
+            columnsCountBreakPoints={{
+              350: 1,
+              750: 2,
+            }}
+          >
+            <Masonry gutter={`${gap}px`} className="[&_figure]:my-0">
+              {imagesSrc.map((src) => (
+                <GridMarkdownImage key={src} src={src} />
+              ))}
+            </Masonry>
+          </ResponsiveMasonry>
+        )
       }
     }
 
