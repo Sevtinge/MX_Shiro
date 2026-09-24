@@ -51,10 +51,12 @@ declare global {
   export interface Site {
     favicon: string
     faviconDark?: string
+    foundedAt?: string
   }
   export interface Hero {
     title: Title
     description: string
+    bottomText?: string
   }
   export interface Title {
     template: TemplateItem[]

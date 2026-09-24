@@ -1,8 +1,10 @@
 'use client'
 
+import { useQuery } from '@tanstack/react-query'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 import { cloneDeep } from '~/lib/lodash'
+import { apiClient } from '~/lib/request'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
 
 import { headerMenuConfig as baseHeaderMenuConfig } from '../config'
@@ -19,6 +21,18 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
   const categories = useAggregationSelector(
     (aggregationData) => aggregationData.categories,
   )
+  // Some aggregate responses omit categories; fetch the public category list
+  // separately so the 文稿 dropdown still has its sections.
+  const { data: fallbackCategories } = useQuery({
+    queryKey: ['header-categories'],
+    queryFn: async () => (await apiClient.category.getAllCategories()).data,
+    enabled: !categories?.length,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  })
+  const resolvedCategories = categories?.length
+    ? categories
+    : fallbackCategories
   const [headerMenuConfig, setHeaderMenuConfig] = useState(baseHeaderMenuConfig)
 
   useEffect(() => {
@@ -36,11 +50,11 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
       }
     }
 
-    if (categories?.length) {
+    if (resolvedCategories?.length) {
       const postIndex = nextMenuConfig.findIndex((item) => item.type === 'Post')
       if (postIndex !== -1) {
         nextMenuConfig[postIndex].subMenu = []
-        for (const category of categories) {
+        for (const category of resolvedCategories) {
           nextMenuConfig[postIndex].subMenu!.push({
             path: `/categories/${category.slug}`,
             title: category.name,
@@ -50,7 +64,7 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
     }
 
     setHeaderMenuConfig(nextMenuConfig)
-  }, [categories, pageMeta])
+  }, [resolvedCategories, pageMeta])
 
   return (
     <HeaderMenuConfigContext.Provider

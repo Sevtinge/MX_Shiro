@@ -28,7 +28,10 @@ export const HeaderLeftButtonArea: Component = ({ children }) => (
 export const HeaderCenterArea: Component = ({ children }) => (
   <OnlyDesktop>
     <div className="flex min-w-0 grow">
-      <div className="relative flex grow items-center justify-center">
+      <div
+        data-header-menu-area
+        className="relative flex grow items-center justify-center"
+      >
         {children}
       </div>
     </div>

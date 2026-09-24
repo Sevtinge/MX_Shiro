@@ -40,6 +40,8 @@ export default async function RootLayout({ children }: PropsWithChildren) {
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <title>Shiro · Light Dashboard | Powered by Mix Space</title>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <HydrationEndDetector />
         {/* <AccentColorStyleInjector /> */}
 

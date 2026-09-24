@@ -1,54 +1,107 @@
 'use client'
 
 import Link from 'next/link'
-import * as React from 'react'
-import { memo } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
-import { FloatPopover } from '~/components/ui/float-popover'
-import { clsxm } from '~/lib/helper'
+import { RootPortal } from '~/components/ui/portal'
 
 import type { IHeaderMenu } from '../config'
 
 export const MenuPopover: Component<{
   subMenu: IHeaderMenu['subMenu']
 }> = memo(({ children, subMenu }) => {
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState({ top: 0, left: 0 })
+
+  const cancelClose = useCallback(() => {
+    if (closeTimer.current !== null) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }, [])
+  const closeSoon = useCallback(() => {
+    cancelClose()
+    closeTimer.current = setTimeout(() => setOpen(false), 180)
+  }, [cancelClose])
+  const updatePosition = useCallback(() => {
+    const rect = triggerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setPosition({
+      top: rect.bottom + 8,
+      left: Math.max(
+        12,
+        Math.min(rect.left + rect.width / 2 - 75, window.innerWidth - 162),
+      ),
+    })
+  }, [])
+  const show = useCallback(() => {
+    cancelClose()
+    updatePosition()
+    setOpen(true)
+  }, [cancelClose, updatePosition])
+
+  useEffect(() => cancelClose, [cancelClose])
+  useEffect(() => {
+    if (!open) return
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open, updatePosition])
+
   if (!subMenu?.length) return children
 
   return (
-    <FloatPopover
-      strategy="fixed"
-      placement="bottom"
-      offset={10}
-      hoverCloseDelay={180}
-      headless
-      popoverWrapperClassNames="z-[19] relative"
-      popoverClassNames={clsxm([
-        'select-none rounded-xl bg-white/60 outline-none dark:bg-neutral-900/60',
-        'border border-zinc-900/5 shadow-lg shadow-zinc-800/5 backdrop-blur-md',
-        'dark:border-zinc-100/10 dark:from-zinc-900/70 dark:to-zinc-800/90',
-        'relative flex w-[130px] flex-col',
-        'focus-visible:!ring-0',
-      ])}
-      triggerElement={<>{children}</>}
-    >
-      {subMenu.length > 0 && subMenu.map((m) => <Item key={m.title} {...m} />)}
-    </FloatPopover>
+    <>
+      <div
+        ref={triggerRef}
+        className="inline-block"
+        onMouseEnter={show}
+        onMouseLeave={closeSoon}
+        onFocusCapture={show}
+        onBlurCapture={closeSoon}
+      >
+        {children}
+      </div>
+      {open && (
+        <RootPortal>
+          <div
+            role="menu"
+            className="fixed z-[99] flex w-[150px] flex-col overflow-hidden rounded-xl border border-zinc-900/5 bg-white/90 shadow-lg shadow-zinc-800/10 backdrop-blur-md dark:border-zinc-100/10 dark:bg-neutral-900/90"
+            style={position}
+            onMouseEnter={cancelClose}
+            onMouseLeave={closeSoon}
+            onFocusCapture={cancelClose}
+            onBlurCapture={closeSoon}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setOpen(false)
+                triggerRef.current?.querySelector('a')?.focus()
+              }
+            }}
+          >
+            {subMenu.map((item) => (
+              <Link
+                key={item.path}
+                href={item.path}
+                role="menuitem"
+                className="relative flex items-center gap-2 px-4 py-3 text-sm duration-200 hover:bg-accent/5 hover:text-accent focus-visible:bg-accent/5 focus-visible:text-accent"
+                onClick={() => setOpen(false)}
+              >
+                {item.icon && (
+                  <span className="flex shrink-0">{item.icon}</span>
+                )}
+                <span>{item.title}</span>
+              </Link>
+            ))}
+          </div>
+        </RootPortal>
+      )}
+    </>
   )
 })
 MenuPopover.displayName = 'MenuPopover'
-
-const Item = memo(function Item(props: IHeaderMenu) {
-  const { title, path, icon } = props
-
-  return (
-    <Link
-      key={title}
-      href={`${path}`}
-      className="relative flex w-full items-center justify-around space-x-2 px-4 py-3 duration-200 hover:bg-accent/5 hover:text-accent"
-      role="button"
-    >
-      {!!icon && <span>{icon}</span>}
-      <span>{title}</span>
-    </Link>
-  )
-})

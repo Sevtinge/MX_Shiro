@@ -75,7 +75,8 @@
     },
     "site": {
       "favicon": "/innei.svg",
-      "faviconDark": "/innei-dark.svg"
+      "faviconDark": "/innei-dark.svg",
+      "foundedAt": ""
     },
     "hero": {
       "title": {
@@ -114,7 +115,8 @@
           }
         ]
       },
-      "description": "An independent developer coding with love."
+      "description": "An independent developer coding with love.",
+      "bottomText": "当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。"
     },
     "module": {
       "donate": {

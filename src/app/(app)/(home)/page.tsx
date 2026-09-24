@@ -37,6 +37,7 @@ import {
 
 import { ActivityPostList } from './components/ActivityPostList'
 import { ActivityRecent } from './components/ActivityRecent'
+import { SiteStats } from './components/SiteStats'
 
 export default function Home() {
   return (
@@ -89,7 +90,7 @@ const TwoColumnLayout = ({
 }
 
 const Hero = () => {
-  const { title, description } = useAppConfigSelector((config) => {
+  const { title, description, bottomText } = useAppConfigSelector((config) => {
     return {
       ...config.hero,
     }
@@ -186,9 +187,11 @@ const Hero = () => {
           )}
         >
           <small className="text-center">
-            当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。
+            {bottomText ??
+              '当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。'}
           </small>
-          <span className="mt-8 animate-bounce">
+          <SiteStats />
+          <span className="mt-5 animate-bounce">
             <i className="i-mingcute-right-line rotate-90 text-2xl" />
           </span>
         </m.div>

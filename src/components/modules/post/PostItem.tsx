@@ -10,10 +10,13 @@ import { PostItemHoverOverlay } from './PostItemHoverOverlay'
 import { PostMetaBar } from './PostMetaBar'
 
 export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
+  const isPinned = !!data.pin
+  const previewLength = isPinned ? 650 : 300
+  const plainText = RemoveMarkdown(data.text)
   const displayText =
-    data.text.length > 300
-      ? `${RemoveMarkdown(data.text.slice(0, 300))}...`
-      : data.text
+    plainText.length > previewLength
+      ? `${plainText.slice(0, previewLength)}...`
+      : plainText
   const hasImage = data.images?.length > 0 && data.images[0].src
   const categorySlug = data.category?.slug
   const postLink = `/posts/${categorySlug}/${data.slug}`
@@ -21,10 +24,19 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
   return (
     <Link
       href={postLink}
-      className="relative flex flex-col py-8 focus-visible:!shadow-none"
+      className={clsx(
+        'relative flex flex-col py-8 focus-visible:!shadow-none',
+        isPinned &&
+          'my-4 rounded-2xl border border-accent/15 bg-accent/5 px-5 shadow-sm dark:border-zinc-700/60 dark:bg-zinc-800/50 sm:px-8',
+      )}
     >
       <PostItemHoverOverlay />
       <h2 className="relative text-balance break-words text-2xl font-medium">
+        {isPinned && (
+          <span className="mr-3 inline-flex translate-y-[-2px] rounded-lg bg-accent/10 px-2 py-1 align-middle text-xs font-medium text-accent">
+            置顶
+          </span>
+        )}
         {data.title}
 
         <PostPinIcon pin={!!data.pin} id={data.id} />

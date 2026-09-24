@@ -55,6 +55,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
       default: `${seo.title} - ${seo.description}`,
     },
     description: seo.description,
+    appleWebApp: { capable: true, title: seo.title, statusBarStyle: 'default' },
     keywords: seo.keywords?.join(',') || '',
     manifest: '/manifest.webmanifest',
     icons: {

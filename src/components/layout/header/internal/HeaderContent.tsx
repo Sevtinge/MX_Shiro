@@ -99,7 +99,11 @@ const ForDesktop: Component<{
   )
 
   React.useEffect(() => {
-    const availableArea = navRef.current?.parentElement
+    // Measure the center cell, not the intrinsic-width AnimatedMenu wrapper.
+    // The floating accessible menu uses its full-width portal wrapper instead.
+    const availableArea =
+      navRef.current?.closest<HTMLElement>('[data-header-menu-area]') ??
+      navRef.current?.parentElement
     const fullMenuElement = fullMenuRef.current
     if (!availableArea || !fullMenuElement) return
 
@@ -159,7 +163,10 @@ const ForDesktop: Component<{
         {fullMenu.map((section) => {
           const active = getMenuActiveState(section, pathname)
           return (
-            <span key={section.path} className="block whitespace-nowrap px-4 py-2">
+            <span
+              key={section.path}
+              className="block whitespace-nowrap px-4 py-2"
+            >
               {active.isActive && (
                 <span className="mr-2 inline-flex items-center">
                   {active.subItemActive?.icon ?? section.icon}
