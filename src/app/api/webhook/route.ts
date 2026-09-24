@@ -4,7 +4,6 @@ import {
   InvalidSignatureError,
   readDataFromRequest,
 } from '@mx-space/webhook'
-import { revalidateTag } from 'next/cache'
 import type { NextRequest } from 'next/server'
 
 import { CacheKeyMap } from '~/constants/keys'
@@ -38,22 +37,16 @@ export const POST = async (nextreq: NextRequest) => {
       case BusinessEvents.NOTE_CREATE:
       case BusinessEvents.NOTE_DELETE:
       case BusinessEvents.NOTE_UPDATE: {
-        revalidateTag('public-site-stats')
         await invalidateCache(CacheKeyMap.AggregateTop)
         return res.status(200).send('OK')
       }
       case BusinessEvents.POST_CREATE:
       case BusinessEvents.POST_UPDATE:
       case BusinessEvents.POST_DELETE: {
-        revalidateTag('public-site-stats')
         await Promise.all([
           invalidateCacheWithPrefix(CacheKeyMap.PostList),
           invalidateCache(CacheKeyMap.AggregateTop),
         ])
-        return res.status(200).send('OK')
-      }
-      case BusinessEvents.RECENTLY_CREATE: {
-        revalidateTag('public-site-stats')
         return res.status(200).send('OK')
       }
       case BusinessEvents.PAGE_CREATE:
