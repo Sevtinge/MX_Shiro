@@ -12,13 +12,14 @@ import type { IHeaderMenu } from '../config'
 export const MenuPopover: Component<{
   subMenu: IHeaderMenu['subMenu']
 }> = memo(({ children, subMenu }) => {
-  if (!subMenu) return children
+  if (!subMenu?.length) return children
 
   return (
     <FloatPopover
       strategy="fixed"
       placement="bottom"
       offset={10}
+      hoverCloseDelay={180}
       headless
       popoverWrapperClassNames="z-[19] relative"
       popoverClassNames={clsxm([

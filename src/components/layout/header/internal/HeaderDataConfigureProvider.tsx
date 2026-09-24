@@ -22,7 +22,6 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
   const [headerMenuConfig, setHeaderMenuConfig] = useState(baseHeaderMenuConfig)
 
   useEffect(() => {
-    if (!pageMeta) return
     const nextMenuConfig = cloneDeep(baseHeaderMenuConfig)
     if (pageMeta) {
       const homeIndex = nextMenuConfig.findIndex((item) => item.type === 'Home')

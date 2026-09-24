@@ -85,6 +85,33 @@ const ForDesktop: Component<{
 }> = ({ className, shouldHideNavBg, animatedIcon = true }) => {
   const { config: headerMenuConfig } = useHeaderConfig()
   const pathname = usePathname()
+  const navRef = React.useRef<HTMLElement>(null)
+  const fullMenuRef = React.useRef<HTMLDivElement>(null)
+  const [showAll, setShowAll] = React.useState(false)
+  const fullMenu = React.useMemo(
+    () =>
+      headerMenuConfig.flatMap((section) =>
+        section.title === '更多' && section.path === '#'
+          ? (section.subMenu ?? [])
+          : [section],
+      ),
+    [headerMenuConfig],
+  )
+
+  React.useEffect(() => {
+    const availableArea = navRef.current?.parentElement
+    const fullMenuElement = fullMenuRef.current
+    if (!availableArea || !fullMenuElement) return
+
+    const update = () => {
+      setShowAll(fullMenuElement.scrollWidth + 2 <= availableArea.clientWidth)
+    }
+    const observer = new ResizeObserver(update)
+    observer.observe(availableArea)
+    observer.observe(fullMenuElement)
+    update()
+    return () => observer.disconnect()
+  }, [fullMenu, pathname])
 
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -103,6 +130,7 @@ const ForDesktop: Component<{
 
   return (
     <m.nav
+      ref={navRef}
       layout="size"
       onMouseMove={handleMouseMove}
       className={clsxm(
@@ -122,32 +150,59 @@ const ForDesktop: Component<{
         style={{ background }}
         aria-hidden="true"
       />
+      {/* Measure the fully expanded menu independently of the visible navigation. */}
+      <div
+        ref={fullMenuRef}
+        aria-hidden="true"
+        className="pointer-events-none invisible absolute left-0 top-0 flex w-max px-4 font-medium"
+      >
+        {fullMenu.map((section) => {
+          const active = getMenuActiveState(section, pathname)
+          return (
+            <span key={section.path} className="block whitespace-nowrap px-4 py-2">
+              {active.isActive && (
+                <span className="mr-2 inline-flex items-center">
+                  {active.subItemActive?.icon ?? section.icon}
+                </span>
+              )}
+              <span>{active.subItemActive?.title ?? section.title}</span>
+            </span>
+          )
+        })}
+      </div>
       <div className="flex px-4 font-medium text-zinc-800 dark:text-zinc-200">
-        {headerMenuConfig.map((section) => {
-          const subItemActive =
-            section.subMenu?.findIndex((item) => {
-              return item.path === pathname || pathname.slice(1) === item.path
-            }) ?? -1
+        {(showAll ? fullMenu : headerMenuConfig).map((section) => {
+          const { isActive, subItemActive } = getMenuActiveState(
+            section,
+            pathname,
+          )
 
           return (
             <HeaderMenuItem
               iconLayout={animatedIcon}
               section={section}
               key={section.path}
-              subItemActive={section.subMenu?.[subItemActive]}
-              isActive={
-                pathname === section.path ||
-                (pathname.startsWith(`${section.path}/`) &&
-                  !section.exclude?.includes(pathname)) ||
-                subItemActive > -1 ||
-                false
-              }
+              subItemActive={subItemActive}
+              isActive={isActive}
             />
           )
         })}
       </div>
     </m.nav>
   )
+}
+
+function getMenuActiveState(section: IHeaderMenu, pathname: string) {
+  const subItemActive = section.subMenu?.find((item) => item.path === pathname)
+  return {
+    subItemActive,
+    isActive:
+      pathname === section.path ||
+      (section.path !== '#' &&
+        pathname.startsWith(`${section.path}/`) &&
+        !section.exclude?.includes(pathname)) ||
+      !!subItemActive,
+  }
 }
 
 const HeaderMenuItem = memo<{

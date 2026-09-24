@@ -44,17 +44,17 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         {/* <AccentColorStyleInjector /> */}
 
         <link
-          rel="shortcut icon"
+          rel="icon"
           href={themeConfig.config.site.faviconDark}
-          type="image/x-icon"
           media="(prefers-color-scheme: dark)"
         />
         <link
-          rel="shortcut icon"
+          rel="icon"
           href={themeConfig.config.site.favicon}
-          type="image/x-icon"
           media="(prefers-color-scheme: light)"
         />
+        <link rel="apple-touch-icon" href={themeConfig.config.site.favicon} />
+        <link rel="manifest" href="/manifest.webmanifest" />
         <PublicEnvScript />
       </head>
       <body

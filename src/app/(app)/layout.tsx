@@ -56,26 +56,18 @@ export const generateMetadata = async (): Promise<Metadata> => {
     },
     description: seo.description,
     keywords: seo.keywords?.join(',') || '',
-    icons: [
-      {
-        url: config.site.favicon,
-        type: 'image/svg+xml',
-        sizes: 'any',
-      },
-      {
-        rel: 'icon',
-        type: 'image/svg+xml',
-        url: config.site.favicon,
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        rel: 'icon',
-        type: 'image/svg+xml',
-        url: config.site.faviconDark || config.site.favicon,
-
-        media: '(prefers-color-scheme: dark)',
-      },
-    ],
+    manifest: '/manifest.webmanifest',
+    icons: {
+      icon: [
+        { url: config.site.favicon, media: '(prefers-color-scheme: light)' },
+        {
+          url: config.site.faviconDark || config.site.favicon,
+          media: '(prefers-color-scheme: dark)',
+        },
+      ],
+      shortcut: config.site.favicon,
+      apple: config.site.favicon,
+    },
 
     robots: {
       index: true,
@@ -160,18 +152,6 @@ export default async function RootLayout(props: PropsWithChildren) {
           <HydrationEndDetector />
           <AccentColorStyleInjector color={themeConfig.config.color} />
 
-          <link
-            rel="shortcut icon"
-            href={themeConfig.config.site.faviconDark}
-            type="image/x-icon"
-            media="(prefers-color-scheme: dark)"
-          />
-          <link
-            rel="shortcut icon"
-            href={themeConfig.config.site.favicon}
-            type="image/x-icon"
-            media="(prefers-color-scheme: light)"
-          />
           <ScriptInjectProvider />
         </head>
         <body

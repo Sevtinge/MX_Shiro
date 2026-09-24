@@ -64,6 +64,7 @@ type FloatPopoverProps<T> = PropsWithChildren<{
   headless?: boolean
   wrapperClassName?: string
   trigger?: 'click' | 'hover' | 'both'
+  hoverCloseDelay?: number
   padding?: number
   offset?: number
   popoverWrapperClassNames?: string
@@ -109,6 +110,7 @@ const RealFloatPopover = function FloatPopover<T extends {}>(
     TriggerComponent,
     triggerElement,
     trigger = 'hover',
+    hoverCloseDelay = 0,
     padding,
     offset: offsetValue,
     popoverWrapperClassNames,
@@ -166,9 +168,27 @@ const RealFloatPopover = function FloatPopover<T extends {}>(
     setOpen(true)
   })
 
-  const handleMouseOut = useCallback(() => {
-    doPopoverDisappear()
-  }, [doPopoverDisappear])
+  const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearHoverCloseTimer = useCallback(() => {
+    if (hoverCloseTimer.current !== null) {
+      clearTimeout(hoverCloseTimer.current)
+      hoverCloseTimer.current = null
+    }
+  }, [])
+  useEffect(() => clearHoverCloseTimer, [clearHoverCloseTimer])
+
+  const handleMouseEnter = useCallback(() => {
+    clearHoverCloseTimer()
+    doPopoverShow()
+  }, [clearHoverCloseTimer, doPopoverShow])
+  const handleMouseLeave = useCallback(() => {
+    clearHoverCloseTimer()
+    if (hoverCloseDelay > 0) {
+      hoverCloseTimer.current = setTimeout(doPopoverDisappear, hoverCloseDelay)
+    } else {
+      doPopoverDisappear()
+    }
+  }, [clearHoverCloseTimer, doPopoverDisappear, hoverCloseDelay])
 
   const listener = useMemo(() => {
     const baseListener = {
@@ -185,20 +205,20 @@ const RealFloatPopover = function FloatPopover<T extends {}>(
       case 'hover': {
         return {
           ...baseListener,
-          onMouseOver: doPopoverShow,
-          onMouseOut: doPopoverDisappear,
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
         }
       }
       case 'both': {
         return {
           ...baseListener,
           onClick: doPopoverShow,
-          onMouseOver: doPopoverShow,
-          onMouseOut: handleMouseOut,
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
         }
       }
     }
-  }, [doPopoverDisappear, doPopoverShow, handleMouseOut, trigger])
+  }, [doPopoverShow, handleMouseEnter, handleMouseLeave, trigger])
 
   const Child = triggerElement ? (
     triggerElement
