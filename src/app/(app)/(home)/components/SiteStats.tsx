@@ -32,7 +32,7 @@ export const SiteStats = () => {
     isPending,
     isError,
   } = useQuery<Stats>({
-    queryKey: ['public-site-stats'],
+    queryKey: ['public-site-stats', 'v2'],
     queryFn: async () => {
       const response = await fetch('/api/site-stats')
       if (!response.ok) throw new Error('Failed to load site statistics')
@@ -76,8 +76,12 @@ export const SiteStats = () => {
       <span>手记 {formatCount(stats?.notes)} 篇</span>
       <span>思考 {formatCount(stats?.thoughts)} 篇</span>
       <span>
-        共 {formatCount(total)} 篇 · {stats?.approximateCharacters ? '约 ' : ''}
-        {formatCount(stats?.characters)} 字
+        共 {formatCount(total)} 篇 ·{' '}
+        {stats?.characters == null
+          ? isPending
+            ? '字数计算中…'
+            : '字数暂不可用'
+          : `${stats.approximateCharacters ? '约 ' : ''}${formatNumber(stats.characters)} 字`}
       </span>
       {isPending && <span>统计加载中…</span>}
       {unavailable && <span>统计暂不可用</span>}

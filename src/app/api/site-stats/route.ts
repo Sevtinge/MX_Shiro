@@ -1,10 +1,43 @@
 import { NextResponse } from 'next/server'
+import removeMarkdown from 'remove-markdown'
 
 import { apiClient } from '~/lib/request'
 
 export const dynamic = 'force-dynamic'
 
-const countCharacters = (text: string) => Array.from(text).length
+const PAGE_SIZE = 50
+const countCharacters = (text: string) =>
+  Array.from(removeMarkdown(text).replaceAll(/\s/g, '')).length
+
+type Publication = { text: string }
+type PublicationCounts = { count: number; characters: number }
+
+async function countPublications(
+  getPage: (page: number) => PromiseLike<{
+    data: Publication[]
+    pagination: { hasNextPage: boolean }
+  }>,
+): Promise<PublicationCounts> {
+  let count = 0
+  let characters = 0
+  let page = 1
+
+  while (true) {
+    const result = await getPage(page)
+    for (const item of result.data) {
+      if (typeof item.text !== 'string') {
+        throw new TypeError('Publication list did not include full text')
+      }
+      count += 1
+      characters += countCharacters(item.text)
+    }
+    if (!result.pagination.hasNextPage) return { count, characters }
+    if (result.data.length === 0 || page >= 1000) {
+      throw new Error('Publication pagination did not finish')
+    }
+    page += 1
+  }
+}
 
 type Stats = {
   posts: number | null
@@ -15,66 +48,66 @@ type Stats = {
 }
 
 const getSiteStats = async (): Promise<Stats> => {
-  // Use the backend's aggregate counters so this does not load every article
-  // on each visit. Independent fallbacks keep the UI populated if one fails.
-  const [
-    statResult,
-    wordResult,
-    postResult,
-    noteResult,
-    thoughtResult,
-    pageResult,
-  ] = await Promise.allSettled([
-    apiClient.aggregate.getStat(),
-    apiClient.proxy.aggregate.count_site_words.get<{
-      data: { length: number }
-    }>(),
-    apiClient.post.getList(1, 1),
-    apiClient.note.getList(1, 1),
-    apiClient.shorthand.getAll(),
-    apiClient.page.getList(1, 100),
-  ])
+  const [statResult, postResult, noteResult, thoughtResult, wordResult] =
+    await Promise.allSettled([
+      apiClient.aggregate.getStat(),
+      countPublications((page) => apiClient.post.getList(page, PAGE_SIZE)),
+      countPublications((page) => apiClient.note.getList(page, PAGE_SIZE)),
+      apiClient.shorthand.getAll(),
+      apiClient.proxy.aggregate.count_site_words.get<{
+        data: { length: number }
+      }>(),
+    ])
 
   const stat = statResult.status === 'fulfilled' ? statResult.value : null
-  const postPage = postResult.status === 'fulfilled' ? postResult.value : null
-  const notePage = noteResult.status === 'fulfilled' ? noteResult.value : null
+  const posts = postResult.status === 'fulfilled' ? postResult.value : null
+  const notes = noteResult.status === 'fulfilled' ? noteResult.value : null
   const thoughts =
     thoughtResult.status === 'fulfilled' &&
     Array.isArray(thoughtResult.value.data)
       ? thoughtResult.value.data
       : null
-  const pages = pageResult.status === 'fulfilled' ? pageResult.value : null
-  const siteCharacters =
+
+  // An empty content type does not require a successful list request to
+  // contribute zero characters to the total.
+  const postCharacters = posts?.characters ?? (stat?.posts === 0 ? 0 : null)
+  const noteCharacters = notes?.characters ?? (stat?.notes === 0 ? 0 : null)
+  const thoughtCharacters = thoughts
+    ? thoughts.reduce(
+        (sum, thought) => sum + countCharacters(thought.content),
+        0,
+      )
+    : stat?.recently === 0
+      ? 0
+      : null
+  const exactCharacters =
+    postCharacters !== null &&
+    noteCharacters !== null &&
+    thoughtCharacters !== null
+      ? postCharacters + noteCharacters + thoughtCharacters
+      : null
+  const fallbackCharacters =
     wordResult.status === 'fulfilled' ? wordResult.value.data?.length : null
 
-  // count_site_words includes pages but excludes thoughts. Adjust it when
-  // both supplementary public lists are available; otherwise label it approximate.
-  const adjustedCharacters =
-    siteCharacters != null && pages && !pages.pagination.hasNextPage && thoughts
-      ? Math.max(
-          0,
-          siteCharacters -
-            pages.data.reduce(
-              (sum, page) => sum + countCharacters(page.text),
-              0,
-            ) +
-            thoughts.reduce(
-              (sum, thought) => sum + countCharacters(thought.content),
-              0,
-            ),
-        )
-      : null
-
-  if (!stat && !postPage && !notePage && !thoughts && siteCharacters == null) {
+  if (!stat && !posts && !notes && !thoughts && fallbackCharacters == null) {
     throw new Error('All site statistics sources are unavailable')
   }
 
+  if (exactCharacters === null) {
+    console.warn('[site-stats] Exact word count unavailable', {
+      posts: postResult.status,
+      notes: noteResult.status,
+      thoughts: thoughtResult.status,
+      fallback: wordResult.status,
+    })
+  }
+
   return {
-    posts: stat?.posts ?? postPage?.pagination.total ?? null,
-    notes: stat?.notes ?? notePage?.pagination.total ?? null,
+    posts: stat?.posts ?? posts?.count ?? null,
+    notes: stat?.notes ?? notes?.count ?? null,
     thoughts: stat?.recently ?? thoughts?.length ?? null,
-    characters: adjustedCharacters ?? siteCharacters ?? null,
-    approximateCharacters: adjustedCharacters === null,
+    characters: exactCharacters ?? fallbackCharacters ?? null,
+    approximateCharacters: exactCharacters === null,
   }
 }
 
