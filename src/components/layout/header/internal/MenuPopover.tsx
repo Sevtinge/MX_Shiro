@@ -1,9 +1,11 @@
 'use client'
 
+import { AnimatePresence, m } from 'motion/react'
 import Link from 'next/link'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { RootPortal } from '~/components/ui/portal'
+import { microReboundPreset } from '~/constants/spring'
 
 import type { IHeaderMenu } from '../config'
 
@@ -67,40 +69,51 @@ export const MenuPopover: Component<{
       >
         {children}
       </div>
-      {open && (
-        <RootPortal>
-          <div
-            role="menu"
-            className="fixed z-[99] flex w-[150px] flex-col overflow-hidden rounded-xl border border-zinc-900/5 bg-white/90 shadow-lg shadow-zinc-800/10 backdrop-blur-md dark:border-zinc-100/10 dark:bg-neutral-900/90"
-            style={position}
-            onMouseEnter={cancelClose}
-            onMouseLeave={closeSoon}
-            onFocusCapture={cancelClose}
-            onBlurCapture={closeSoon}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setOpen(false)
-                triggerRef.current?.querySelector('a')?.focus()
-              }
-            }}
-          >
-            {subMenu.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                role="menuitem"
-                className="relative flex items-center gap-2 px-4 py-3 text-sm duration-200 hover:bg-accent/5 hover:text-accent focus-visible:bg-accent/5 focus-visible:text-accent"
-                onClick={() => setOpen(false)}
-              >
-                {item.icon && (
-                  <span className="flex shrink-0">{item.icon}</span>
-                )}
-                <span>{item.title}</span>
-              </Link>
-            ))}
-          </div>
-        </RootPortal>
-      )}
+      <RootPortal>
+        <AnimatePresence>
+          {open && (
+            <m.div
+              role="menu"
+              className="fixed z-[99] flex w-[150px] flex-col overflow-hidden rounded-xl border border-zinc-900/5 bg-white/90 shadow-lg shadow-zinc-800/10 backdrop-blur-md dark:border-zinc-100/10 dark:bg-neutral-900/90"
+              style={position}
+              initial={{ y: 10, opacity: 0, scale: 0.96 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{
+                y: 8,
+                opacity: 0,
+                scale: 0.98,
+                transition: { duration: 0.16 },
+              }}
+              transition={microReboundPreset}
+              onMouseEnter={cancelClose}
+              onMouseLeave={closeSoon}
+              onFocusCapture={cancelClose}
+              onBlurCapture={closeSoon}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  setOpen(false)
+                  triggerRef.current?.querySelector('a')?.focus()
+                }
+              }}
+            >
+              {subMenu.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  role="menuitem"
+                  className="relative flex items-center gap-2 px-4 py-3 text-sm duration-200 hover:bg-accent/5 hover:text-accent focus-visible:bg-accent/5 focus-visible:text-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  {item.icon && (
+                    <span className="flex shrink-0">{item.icon}</span>
+                  )}
+                  <span>{item.title}</span>
+                </Link>
+              ))}
+            </m.div>
+          )}
+        </AnimatePresence>
+      </RootPortal>
     </>
   )
 })
