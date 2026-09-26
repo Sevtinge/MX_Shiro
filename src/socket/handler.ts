@@ -43,6 +43,12 @@ import { EventTypes } from '~/types/events'
 
 import { WsEvent } from './util'
 
+const refreshContentQueries = () => {
+  for (const queryKey of [['home'], ['home-activity-recent'], ['rooms']]) {
+    queryClient.invalidateQueries({ queryKey })
+  }
+}
+
 const trackerRealtimeEvent = (label = 'Socket Realtime Event') => {
   document.dispatchEvent(
     new CustomEvent('impression', {
@@ -60,10 +66,17 @@ export const eventHandler = (
   router: AppRouterInstance,
 ) => {
   switch (type) {
+    case EventTypes.CONTENT_REFRESH: {
+      refreshContentQueries()
+      router?.refresh()
+      break
+    }
+
     case EventTypes.VISITOR_ONLINE:
     case EventTypes.VISITOR_OFFLINE: {
       const { online } = data
       setOnlineCount(online)
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
       break
     }
 
@@ -71,11 +84,13 @@ export const eventHandler = (
       const post = data as PostModel
       const currentData = getGlobalCurrentPostData()
 
+      refreshContentQueries()
       if (!currentData) break
       if (currentData.id !== post.id) {
         break
       }
 
+      const textChanged = currentData.text !== post.text
       setGlobalCurrentPostData((draft) => {
         const nextPost = { ...data }
         Reflect.deleteProperty(nextPost, 'category')
@@ -84,7 +99,7 @@ export const eventHandler = (
       toast.info('文章已更新')
       trackerRealtimeEvent()
 
-      if (currentData.text !== post.text) {
+      if (textChanged) {
         document.dispatchEvent(new CustomEvent(DOMCustomEvents.RefreshToc))
       }
 
@@ -92,6 +107,7 @@ export const eventHandler = (
     }
 
     case EventTypes.POST_DELETE: {
+      refreshContentQueries()
       const post = data as PostModel
       if (
         location.pathname ===
@@ -110,6 +126,7 @@ export const eventHandler = (
     }
 
     case EventTypes.NOTE_UPDATE: {
+      refreshContentQueries()
       const note = data as NoteModel
       const currentData = getCurrentNoteData()?.data
 
@@ -118,13 +135,14 @@ export const eventHandler = (
         break
       }
 
+      const textChanged = currentData.text !== note.text
       setCurrentNoteData((draft) => {
         Object.assign(draft.data, note)
       })
       toast.info('手记已更新')
       trackerRealtimeEvent()
 
-      if (currentData.text !== note.text) {
+      if (textChanged) {
         document.dispatchEvent(new CustomEvent(DOMCustomEvents.RefreshToc))
       }
 
@@ -132,6 +150,7 @@ export const eventHandler = (
     }
 
     case EventTypes.NOTE_DELETE: {
+      refreshContentQueries()
       const note = data as NoteModel
       if (
         location.pathname ===
@@ -162,6 +181,7 @@ export const eventHandler = (
     }
 
     case EventTypes.NOTE_CREATE: {
+      refreshContentQueries()
       const { title, nid } = data as NoteModel
 
       toast.success(`有新的内容发布了：「${title}」`, {
@@ -177,6 +197,7 @@ export const eventHandler = (
     }
 
     case EventTypes.POST_CREATE: {
+      refreshContentQueries()
       const { title, category, slug } = data as PostModel
       toast.success(`有新的内容发布了：「${title}」`, {
         onClick: () => {
@@ -190,6 +211,7 @@ export const eventHandler = (
     }
 
     case EventTypes.RECENTLY_CREATE: {
+      queryClient.invalidateQueries({ queryKey: ['home-activity-recent'] })
       trackerRealtimeEvent()
       if (location.pathname === routeBuilder(Routes.Thinking, {})) {
         // 页面上已经做了更新

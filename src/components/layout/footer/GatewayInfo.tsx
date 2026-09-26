@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useOnlineCount } from '~/atoms'
 import { useSocketIsConnect } from '~/atoms/hooks'
@@ -86,6 +86,7 @@ function ConnectionStatus({ isConnected }: { isConnected: boolean }) {
 export const GatewayInfo = () => {
   const isActive = usePageIsActive()
   const count = useOnlineCount()
+  const queryClient = useQueryClient()
 
   if (!isActive) return null
   return (
@@ -96,13 +97,14 @@ export const GatewayInfo = () => {
         placement="top"
         trigger="both"
         offset={10}
+        onOpen={() => queryClient.invalidateQueries({ queryKey: ['rooms'] })}
         triggerElement={
           <span key={count} className="cursor-pointer">
-            正在被{' '}
+            当前有
             <span>
               <NumberSmoothTransition>{count}</NumberSmoothTransition>
             </span>{' '}
-            人看爆
+            个小伙伴在线
           </span>
         }
       >
@@ -114,12 +116,11 @@ export const GatewayInfo = () => {
 }
 
 const RoomsInfo = () => {
-  const { data } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ['rooms'],
     refetchOnMount: true,
     staleTime: 1000 * 10,
     queryFn: async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
       const res = await apiClient.activity.getRoomsInfo()
       const data = res.$serialized
       const result = [] as {
@@ -156,7 +157,9 @@ const RoomsInfo = () => {
           count: data.roomCount[morphArticleIdToRoomName(page.id)],
         })
       })
-      return result.sort((a, b) => b.count - a.count)
+      return result
+        .filter((room) => room.count > 0)
+        .sort((a, b) => b.count - a.count)
     },
   })
 
@@ -167,7 +170,11 @@ const RoomsInfo = () => {
       </div>
     )
   if (data.length === 0)
-    return <div className="text-gray-500">还没有小伙伴在阅览文章哦~</div>
+    return (
+      <div className="text-gray-500">
+        {isFetching ? '正在更新阅览情况…' : '在线的小伙伴暂时没有在阅览文章哦~'}
+      </div>
+    )
   return (
     <div className="lg:max-w-[400px]">
       <div className="mb-2 text-sm font-medium">下面的内容正在被看爆：</div>

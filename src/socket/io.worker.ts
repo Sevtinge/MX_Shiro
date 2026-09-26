@@ -14,7 +14,7 @@ function setupIo(config: { url: string; socket_session_id: string }) {
     timeout: 10000,
     reconnectionDelay: 3000,
     autoConnect: false,
-    reconnectionAttempts: 3,
+    reconnectionAttempts: Infinity,
     transports: ['websocket'],
 
     query: {
@@ -92,7 +92,8 @@ const preparePort = (port: MessagePort | Window) => {
         port.postMessage({ type: 'ping' })
 
         if (ws) {
-          if (ws.connected) port.postMessage({ type: 'connect' })
+          if (ws.connected)
+            port.postMessage({ type: 'connect', payload: ws.id })
           port.postMessage({ type: 'sid', payload: ws.id })
         }
         break

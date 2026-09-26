@@ -7,32 +7,42 @@ import { deleteActivityPresence } from '~/atoms/activity'
 import { useSocketIsConnect, useSocketSessionId } from '~/atoms/hooks'
 import { usePageIsActive } from '~/hooks/common/use-is-active'
 import { useIsClient } from '~/hooks/common/use-is-client'
+import { queryClient } from '~/providers/root/react-query-provider'
 import { SocketEmitEnum } from '~/types/events'
 
 import { socketWorker } from '../../socket/worker-client'
 
-if (typeof window !== 'undefined') {
-  import('../../socket/worker-client')
-}
 export const SocketContainer = () => {
   return useIsClient() ? <SocketContainerImpl /> : null
 }
 const SocketContainerImpl: Component = () => {
-  const connectOnce = useRef(false)
   const router = useRouter()
   useEffect(() => {
-    if (connectOnce.current) return
-    import('../../socket/worker-client').then(({ socketWorker }) => {
-      socketWorker.setRouter(router)
-
-      connectOnce.current = true
-    })
-  }, [])
+    socketWorker.setRouter(router)
+  }, [router])
 
   const webSocketSessionId = useSocketSessionId()
   const previousWebSocketSessionIdRef = useRef(webSocketSessionId)
 
   const socketIsConnected = useSocketIsConnect()
+  const hasConnectedRef = useRef(false)
+
+  useEffect(() => {
+    if (!socketIsConnected) return
+    // Reconcile events that may have been missed while the gateway was offline.
+    if (hasConnectedRef.current) {
+      for (const queryKey of [
+        ['home'],
+        ['home-activity-recent'],
+        ['rooms'],
+        ['activity'],
+      ]) {
+        queryClient.invalidateQueries({ queryKey })
+      }
+      router.refresh()
+    }
+    hasConnectedRef.current = true
+  }, [socketIsConnected, router])
 
   useEffect(() => {
     const previousWebSocketSessionId = previousWebSocketSessionIdRef.current

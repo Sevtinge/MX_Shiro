@@ -187,8 +187,11 @@ const Hero = () => {
           )}
         >
           <small className="text-center">
-            {bottomText ??
-              '当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。'}
+            {bottomText &&
+            bottomText !==
+              '当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。'
+              ? bottomText
+              : '海盐柠檬茶 vs. 抹茶曲奇'}
           </small>
           <SiteStats />
           <span className="mt-5 animate-bounce">

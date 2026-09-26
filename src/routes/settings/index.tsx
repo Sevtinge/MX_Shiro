@@ -8,8 +8,7 @@ import { StyledButton } from '~/components/ui/button'
 import { apiClient } from '~/lib/request'
 import { toast } from '~/lib/toast'
 
-const DEFAULT_BOTTOM_TEXT =
-  '当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。'
+const DEFAULT_BOTTOM_TEXT = '海盐柠檬茶 vs. 抹茶曲奇'
 
 export const config = defineRouteConfig({
   title: '主页设置',
@@ -45,7 +44,13 @@ export function Component() {
     if (!snippet) return
     try {
       const theme = JSON.parse(snippet.raw) as AppThemeConfig
-      setBottomText(theme.config.hero.bottomText ?? DEFAULT_BOTTOM_TEXT)
+      setBottomText(
+        !theme.config.hero.bottomText ||
+          theme.config.hero.bottomText ===
+            '当第一颗卫星飞向大气层外，我们便以为自己终有一日会征服宇宙。'
+          ? DEFAULT_BOTTOM_TEXT
+          : theme.config.hero.bottomText,
+      )
       setFoundedAt(theme.config.site.foundedAt ?? '')
       setInvalidTheme(false)
     } catch {
