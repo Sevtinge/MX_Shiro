@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import * as React from 'react'
 import { cache } from 'react'
 
+import { ArticleRoomPresence } from '~/components/common/ArticleRoomPresence'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
 import { TocFAB } from '~/components/modules/toc/TocFAB'
 import {
@@ -85,6 +86,7 @@ export default definePrerenderPage<PageParams>()({
     return (
       <>
         <CurrentPageDataProvider data={data} />
+        <ArticleRoomPresence id={data.id} />
         <div className="relative flex min-h-[120px] w-full">
           <PageLoading>
             <div className="relative w-full min-w-0">

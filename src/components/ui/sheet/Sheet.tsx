@@ -22,6 +22,8 @@ export interface PresentSheetProps {
   defaultOpen?: boolean
 
   triggerAsChild?: boolean
+  modal?: boolean
+  noBodyStyles?: boolean
 }
 
 export const sheetStackAtom = atom([] as HTMLDivElement[])
@@ -42,6 +44,8 @@ export const PresentSheet = forwardRef<
     dismissible = true,
     defaultOpen,
     triggerAsChild,
+    modal = true,
+    noBodyStyles = false,
   } = props
 
   const [isOpen, setIsOpen] = useState(props.open ?? defaultOpen)
@@ -98,7 +102,12 @@ export const PresentSheet = forwardRef<
   const contentZIndex = zIndex
 
   return (
-    <Root dismissible={dismissible} {...nextRootProps}>
+    <Root
+      dismissible={dismissible}
+      modal={modal}
+      noBodyStyles={noBodyStyles}
+      {...nextRootProps}
+    >
       {!!children && (
         <Drawer.Trigger asChild={triggerAsChild}>{children}</Drawer.Trigger>
       )}
@@ -135,6 +144,15 @@ export const PresentSheet = forwardRef<
           </SheetContext.Provider>
           <div ref={setHolderRef} />
         </Drawer.Content>
+        {!modal && isOpen && (
+          <button
+            type="button"
+            aria-label="关闭弹窗"
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-neutral-800/40"
+            style={{ zIndex: overlayZIndex }}
+          />
+        )}
         <Drawer.Overlay
           className="fixed inset-0 bg-neutral-800/40"
           style={{

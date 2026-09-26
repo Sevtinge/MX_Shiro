@@ -2,6 +2,7 @@ import type { NoteModel } from '@mx-space/api-client'
 import type { Metadata } from 'next'
 
 import { AckRead } from '~/components/common/AckRead'
+import { ArticleRoomPresence } from '~/components/common/ArticleRoomPresence'
 import { ClientOnly } from '~/components/common/ClientOnly'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
 import {
@@ -175,6 +176,7 @@ export default definePrerenderPage<NoteDetailPageParams>()({
       <>
         <CurrentNoteNidProvider nid={nid} />
         <CurrentNoteDataProvider data={data} />
+        <ArticleRoomPresence id={data.data.id} />
 
         <SyncNoteDataAfterLoggedIn />
 

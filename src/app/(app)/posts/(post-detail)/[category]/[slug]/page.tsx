@@ -2,6 +2,7 @@ import type { ModelWithLiked, PostModel } from '@mx-space/api-client'
 import type { Metadata } from 'next'
 
 import { AckRead } from '~/components/common/AckRead'
+import { ArticleRoomPresence } from '~/components/common/ArticleRoomPresence'
 import { ClientOnly } from '~/components/common/ClientOnly'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
 import {
@@ -161,6 +162,7 @@ export default definePrerenderPage<PageParams>()({
         {currentPath !== fullPath && <SlugReplacer to={fullPath} />}
 
         <CurrentPostDataProvider data={data} />
+        <ArticleRoomPresence id={data.id} />
         <div className="relative flex min-h-[120px] grid-cols-[auto,200px] lg:grid">
           <BottomToUpTransitionView className="min-w-0">
             <PostPage data={data} />

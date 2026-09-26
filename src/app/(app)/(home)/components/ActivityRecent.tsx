@@ -19,6 +19,8 @@ export const ActivityRecent = () => {
       return (await apiClient.activity.getRecentActivities()).$serialized
     },
     refetchOnMount: true,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
     meta: {
       persist: true,
     },

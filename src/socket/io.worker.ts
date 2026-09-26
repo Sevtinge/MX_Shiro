@@ -1,9 +1,16 @@
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
+import { SocketEmitEnum } from '~/types/events'
+
 /// <reference lib="webworker" />
 
 let ws: Socket | null = null
+const roomMembers = new Map<MessagePort | Window, Set<string>>()
+const waitingEmitQueue: any[] = []
+
+const hasRoomMember = (roomName: string) =>
+  [...roomMembers.values()].some((rooms) => rooms.has(roomName))
 
 function setupIo(config: { url: string; socket_session_id: string }) {
   if (ws) return
@@ -51,6 +58,13 @@ function setupIo(config: { url: string; socket_session_id: string }) {
       })
       waitingEmitQueue.length = 0
     }
+    // Socket.IO room membership is lost on reconnect. Restore all rooms before
+    // notifying tabs that their connection is ready again.
+    for (const roomName of new Set(
+      [...roomMembers.values()].flatMap((rooms) => [...rooms]),
+    )) {
+      ws?.emit('message', { type: SocketEmitEnum.Join, payload: { roomName } })
+    }
     boardcast({
       type: 'connect',
       // @ts-expect-error
@@ -78,7 +92,23 @@ const preparePort = (port: MessagePort | Window) => {
         break
       }
       case 'emit': {
-        if (ws) {
+        const roomName = payload?.payload?.roomName
+        if (
+          (payload?.type === SocketEmitEnum.Join ||
+            payload?.type === SocketEmitEnum.Leave) &&
+          typeof roomName === 'string'
+        ) {
+          const wasJoined = hasRoomMember(roomName)
+          const rooms = roomMembers.get(port) || new Set<string>()
+          if (payload.type === SocketEmitEnum.Join) rooms.add(roomName)
+          else rooms.delete(roomName)
+          if (rooms.size > 0) roomMembers.set(port, rooms)
+          else roomMembers.delete(port)
+          const isJoined = hasRoomMember(roomName)
+          if (ws?.connected && wasJoined !== isJoined) {
+            ws.emit('message', payload)
+          }
+        } else if (ws) {
           if (ws.connected) ws.emit('message', payload)
           else waitingEmitQueue.push(payload)
         }
@@ -126,5 +156,3 @@ function boardcast(payload: any) {
     port.postMessage(payload)
   })
 }
-
-const waitingEmitQueue: any[] = []

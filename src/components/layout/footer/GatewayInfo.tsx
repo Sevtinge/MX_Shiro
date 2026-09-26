@@ -94,13 +94,20 @@ export const GatewayInfo = () => {
       <FloatPopover
         asChild
         mobileAsSheet
+        sheet={{
+          modal: false,
+          noBodyStyles: true,
+          onOpenChange: (open) => {
+            if (open) queryClient.invalidateQueries({ queryKey: ['rooms'] })
+          },
+        }}
         placement="top"
         trigger="both"
         offset={10}
         onOpen={() => queryClient.invalidateQueries({ queryKey: ['rooms'] })}
         triggerElement={
-          <span key={count} className="cursor-pointer">
-            当前有
+          <span className="cursor-pointer">
+            当前有{' '}
             <span>
               <NumberSmoothTransition>{count}</NumberSmoothTransition>
             </span>{' '}
