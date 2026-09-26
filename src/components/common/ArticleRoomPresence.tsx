@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 
 import { useSocketIsConnect } from '~/atoms/hooks'
+import { getArticleRoomName } from '~/socket/rooms'
 import { socketWorker } from '~/socket/worker-client'
 import { SocketEmitEnum } from '~/types/events'
 
@@ -12,7 +13,7 @@ export const ArticleRoomPresence = ({ id }: { id: string }) => {
 
   useEffect(() => {
     if (!connected || !id) return
-    const roomName = `article_${id}`
+    const roomName = getArticleRoomName(id)
     let joined = false
     const join = () => {
       if (joined) return
