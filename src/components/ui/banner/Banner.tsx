@@ -69,7 +69,7 @@ export const Banner: FC<{
         />
       )}
       {props.message ? (
-        <span className="leading-[1.8]">{props.message}</span>
+        <span className="whitespace-pre-line leading-[1.8]">{props.message}</span>
       ) : (
         props.children
       )}

@@ -14,41 +14,35 @@ const bannerClassNames = {
 }
 
 const useNoteBanner = () => {
-  const meta = useCurrentNoteDataSelector((n) => n?.data.meta)
+  const banner = useCurrentNoteDataSelector((n) => n?.data.meta?.banner)
+  if (!banner) return []
 
-  let banner = meta?.banner as {
-    type: keyof typeof bannerClassNames
-    message: string
-    className: string
-    style?: any
-  }
-
-  if (!banner) {
-    return
-  }
-  if (typeof banner === 'string') {
-    return {
-      type: 'info',
-      message: banner,
-      className: bannerClassNames.info,
-    } as any
-  }
-  banner = { ...banner }
-  banner.type ??= 'info'
-  banner.className ??=
-    bannerClassNames[banner.type as keyof typeof bannerClassNames]
-
-  return banner
+  return (Array.isArray(banner) ? banner : [banner])
+    .map((item) => {
+      if (typeof item === 'string') return { type: 'info' as const, message: item }
+      const { type } = item
+      return {
+        ...item,
+        type: type && type in bannerClassNames
+          ? (type as keyof typeof bannerClassNames)
+          : 'info' as const,
+      }
+    })
+    .filter((item) => item.message)
 }
 
 export const NoteRootBanner = () => {
   const banner = useNoteBanner()
 
-  if (!banner) return null
+  if (banner.length === 0) return null
 
   return (
     <div className="mb-4 mt-8">
-      <NoteBanner {...banner} />
+      {banner.map((item, index) => (
+        // Static metadata entries have no identity or local state.
+        // eslint-disable-next-line @eslint-react/no-array-index-key
+        <NoteBanner key={index} {...item} />
+      ))}
     </div>
   )
 }
@@ -62,7 +56,7 @@ export const NoteBanner: FC<{
   return (
     <div
       className={clsxm(
-        'mt-4 flex justify-center p-4 text-base leading-8',
+        'mt-4 flex justify-center whitespace-pre-line p-4 text-base leading-8',
         'lg:-ml-12 lg:w-[calc(100%+6rem)]',
         // '-ml-4 w-[calc(100%+2rem)]',
         'mx-[var(--padding-h)]',

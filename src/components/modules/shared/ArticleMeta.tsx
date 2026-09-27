@@ -19,16 +19,29 @@ export const ArticleAiDeclaration = ({ aiGen }: Pick<PostMeta, 'aiGen'>) => {
 export const ArticleBanner = ({ banner }: Pick<PostMeta, 'banner'>) => {
   if (!banner) return null
 
-  const message = typeof banner === 'string' ? banner : banner.message
-  if (!message) return null
+  const items = Array.isArray(banner) ? banner : [banner]
 
-  const type = typeof banner === 'string' ? 'info' : banner.type
-  const supportedType =
-    type === 'warning' || type === 'warn' || type === 'error' || type === 'success'
-      ? type
-      : 'info'
+  return (
+    <div className="my-6 space-y-4">
+      {items.map((item, index) => {
+        const message = typeof item === 'string' ? item : item.message
+        if (!message) return null
 
-  return <Banner className="my-6" type={supportedType} message={message} />
+        const type = typeof item === 'string' ? 'info' : item.type
+        const supportedType =
+          type === 'warning' ||
+          type === 'warn' ||
+          type === 'error' ||
+          type === 'success'
+            ? type
+            : 'info'
+
+        // Static metadata entries have no identity or local state.
+        // eslint-disable-next-line @eslint-react/no-array-index-key
+        return <Banner key={index} type={supportedType} message={message} />
+      })}
+    </div>
+  )
 }
 
 export const ArticleCover = ({ cover }: Pick<PostMeta, 'cover'>) => {

@@ -45,7 +45,10 @@ declare module '@mx-space/api-client' {
   export interface PostMeta {
     style?: string
     cover?: string
-    banner?: string | { type: string; message: string }
+    banner?:
+      | string
+      | { type?: string; message: string }
+      | (string | { type?: string; message: string })[]
     aiGen?: boolean | string
   }
   interface TextBaseModel extends BaseCommentIndexModel {
