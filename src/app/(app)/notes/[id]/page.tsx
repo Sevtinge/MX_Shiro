@@ -19,6 +19,7 @@ import {
 } from '~/components/modules/note/NoteBanner'
 import { NoteFontSettingFab } from '~/components/modules/note/NoteFontFab'
 import { NoteMainContainer } from '~/components/modules/note/NoteMainContainer'
+import { ArticleAiDeclaration } from '~/components/modules/shared/ArticleMeta'
 import { ArticleRightAside } from '~/components/modules/shared/ArticleRightAside'
 import { BanCopyWrapper } from '~/components/modules/shared/BanCopyWrapper'
 import { ReadIndicatorForMobile } from '~/components/modules/shared/ReadIndicator'
@@ -73,6 +74,7 @@ function PageInner({ data }: { data: NoteModel }) {
         </span>
 
         <NoteRootBanner />
+        <ArticleAiDeclaration aiGen={data.meta?.aiGen} />
         {data.hide && (
           <NoteBanner type="warning" message="这篇文章是非公开的，仅登录可见" />
         )}

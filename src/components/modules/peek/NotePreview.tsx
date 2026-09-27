@@ -24,6 +24,7 @@ import { queries } from '~/queries/definition'
 
 import { NoteHideIfSecret, NoteMetaBar, NoteRootBanner } from '../note'
 import { NoteHeadCover } from '../note/NoteHeadCover'
+import { ArticleAiDeclaration } from '../shared/ArticleMeta'
 import { BanCopyWrapper } from '../shared/BanCopyWrapper'
 import { XLogSummary } from '../xlog'
 import { getCidForBaseModel } from '../xlog/utils'
@@ -57,6 +58,7 @@ export const NotePreview: FC<NotePreviewProps> = (props) => {
               </ClientOnly>
             </span>
             <NoteRootBanner />
+            <ArticleAiDeclaration aiGen={note.meta?.aiGen} />
           </header>
 
           <NoteHideIfSecret>

@@ -12,6 +12,7 @@ import {
   PostOutdate,
   PostRelated,
 } from '~/components/modules/post'
+import { ArticleAiDeclaration, ArticleBanner, ArticleCover } from '~/components/modules/shared/ArticleMeta'
 import { ArticleRightAside } from '~/components/modules/shared/ArticleRightAside'
 import { GoToAdminEditingButton } from '~/components/modules/shared/GoToAdminEditingButton'
 import { ReadIndicatorForMobile } from '~/components/modules/shared/ReadIndicator'
@@ -59,7 +60,6 @@ export const generateMetadata = async ({
       title,
       category: { slug: categorySlug },
       text,
-      meta,
     } = data
     const description = getSummaryFromMd(text ?? '')
 
@@ -96,6 +96,7 @@ const PostPage = ({ data }: { data: ModelWithLiked<PostModel> }) => {
     <div className="relative w-full min-w-0">
       <AckRead id={id} type="post" />
       <HeaderMetaInfoSetting />
+      <ArticleCover cover={data.meta?.cover} />
       <div>
         <div className="mb-8">
           <PostTitle />
@@ -106,6 +107,8 @@ const PostPage = ({ data }: { data: ModelWithLiked<PostModel> }) => {
           />
 
           <PostMetaBarInternal className="mb-8 justify-center" />
+          <ArticleBanner banner={data.meta?.banner} />
+          <ArticleAiDeclaration aiGen={data.meta?.aiGen} />
 
           <SummarySwitcher data={data} />
 

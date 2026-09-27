@@ -15,6 +15,7 @@ import { ErrorBoundary } from '~/components/common/ErrorBoundary'
 import { Paper } from '~/components/layout/container/Paper'
 import { NoteMetaBar, NoteRootBanner } from '~/components/modules/note'
 import { NoteHeadCover } from '~/components/modules/note/NoteHeadCover'
+import { ArticleAiDeclaration, ArticleBanner, ArticleCover } from '~/components/modules/shared/ArticleMeta'
 import { ArticleRightAside } from '~/components/modules/shared/ArticleRightAside'
 import { ReadIndicatorForMobile } from '~/components/modules/shared/ReadIndicator'
 import { jotaiStore } from '~/lib/store'
@@ -191,10 +192,13 @@ const PostPreview = () => {
         <CurrentPostDataProvider data={data} />
         <div className="relative flex min-h-[120px] grid-cols-[auto,200px] lg:grid">
           <article className="prose relative w-full min-w-0">
+            <ArticleCover cover={data.meta?.cover} />
             <header className="mb-8">
               <h1 className="text-balance text-center">{data.title}</h1>
 
               <PostMetaBarInternal className="mb-8 justify-center" />
+              <ArticleBanner banner={data.meta?.banner} />
+              <ArticleAiDeclaration aiGen={data.meta?.aiGen} />
             </header>
             <WrappedElementProvider eoaDetect>
               <PostMarkdownImageRecordProvider>
@@ -250,6 +254,7 @@ const NotePreview = () => {
                 <NoteMetaBar />
               </span>
               <NoteRootBanner />
+              <ArticleAiDeclaration aiGen={data.meta?.aiGen} />
             </header>
 
             <WrappedElementProvider eoaDetect>
