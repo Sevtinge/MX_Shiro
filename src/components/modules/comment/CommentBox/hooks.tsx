@@ -1,7 +1,6 @@
 'use client'
 
 import type {
-  CommentDto,
   CommentModel,
   PaginateResult,
   RequestError,
@@ -16,6 +15,8 @@ import type { PropsWithChildren } from 'react'
 import { useCallback, useContext } from 'react'
 
 import { useIsLogged } from '~/atoms/hooks'
+import { useSessionReader } from '~/atoms/hooks/reader'
+import { submitComment } from '~/lib/comment-request'
 import { apiClient } from '~/lib/request'
 import { getErrorMessageFromRequestError } from '~/lib/request.shared'
 import { jotaiStore } from '~/lib/store'
@@ -115,7 +116,6 @@ export const useSendComment = () => {
     mail: mailAtom,
     url: urlAtom,
 
-    source: sourceAtom,
     avatar: avatarAtom,
 
     isWhisper: isWhisperAtom,
@@ -123,6 +123,7 @@ export const useSendComment = () => {
   } = useGetCommentBoxAtomValues()
   const { afterSubmit } = useCommentBoxLifeCycle()
   const isLogged = useIsLogged()
+  const sessionReader = useSessionReader()
   const queryClient = useQueryClient()
   const isReply = useUseCommentReply()
   const originalRefId = useCommentOriginalRefId()
@@ -136,75 +137,38 @@ export const useSendComment = () => {
   const { mutate, isPending } = useMutation({
     mutationFn: async (refId: string) => {
       const text = jotaiStore.get(textAtom)
-      const author = jotaiStore.get(authorAtom)
-      const mail = jotaiStore.get(mailAtom)
-      const avatar = jotaiStore.get(avatarAtom)
-      const source = jotaiStore.get(sourceAtom) as any
-      const url = jotaiStore.get(urlAtom)
-
-      const commentDto: CommentDto = { text, author, mail, avatar, source, url }
-
-      if (isLogged) {
-        delete commentDto.avatar
-      }
-
-      // Omit empty string key
-      Object.keys(commentDto).forEach((key) => {
-        // @ts-expect-error
-        if (commentDto[key] === '') delete commentDto[key]
+      const comment = await submitComment(apiClient, {
+        refId,
+        text,
+        isReply,
+        isOwner: isLogged,
+        isReader: !!sessionReader,
+        isWhispers: jotaiStore.get(isWhisperAtom),
+        author: jotaiStore.get(authorAtom),
+        mail: jotaiStore.get(mailAtom),
+        avatar: jotaiStore.get(avatarAtom),
+        url: jotaiStore.get(urlAtom),
       })
 
-      // Reply Comment
-      if (isReply) {
-        if (isLogged) {
-          return apiClient.comment.proxy.master
-            .reply(refId)
-            .post<CommentModel>({
-              data: {
-                text,
-                source,
-              },
-            })
-            .then(wrappedCompletedCallback)
-        } else {
-          return apiClient.comment
-            .reply(refId, commentDto)
-            .then(wrappedCompletedCallback)
-        }
+      if (!isReply && isLogged && jotaiStore.get(syncToRecentlyAtom)) {
+        void apiClient.recently.proxy
+          .post({
+            data: {
+              content: text,
+              ref: refId,
+            },
+          })
+          .then(() => {
+            toast.success('已同步到碎碎念')
+          })
+          .catch((error: RequestError) => {
+            toast.error(
+              `评论已发表，但同步到碎碎念失败：${getErrorMessageFromRequestError(error)}`,
+            )
+          })
       }
 
-      // Normal Comment
-      const isWhisper = jotaiStore.get(isWhisperAtom)
-      const syncToRecently = jotaiStore.get(syncToRecentlyAtom)
-
-      if (isLogged) {
-        return apiClient.comment.proxy.master
-          .comment(refId)
-          .post<CommentModel>({
-            data: { text, source },
-          })
-          .then(async (res) => {
-            if (syncToRecently)
-              apiClient.recently.proxy
-                .post({
-                  data: {
-                    content: text,
-                    ref: refId,
-                  },
-                })
-                .then(() => {
-                  toast.success('已同步到碎碎念')
-                })
-
-            return res
-          })
-          .then(wrappedCompletedCallback)
-      }
-      // @ts-ignore
-      commentDto.isWhispers = isWhisper
-      return apiClient.comment
-        .comment(refId, commentDto)
-        .then(wrappedCompletedCallback)
+      return wrappedCompletedCallback(comment)
     },
     mutationKey: [commentRefId, 'comment'],
     onError(error: RequestError) {

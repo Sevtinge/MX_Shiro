@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { produce } from 'immer'
 import { useSearchParams } from 'next/navigation'
 
+import { submitComment } from '~/lib/comment-request'
 import { apiClient } from '~/lib/request'
 import { toast } from '~/lib/toast'
 
@@ -82,10 +83,11 @@ export const useReplyCommentMutation = () => {
   return useMutation({
     mutationKey: ['comment', 'reply'],
     mutationFn: async ({ id, content }: { id: string; content: string }) => {
-      return apiClient.proxy.comments.master.reply(id).post({
-        data: {
-          text: content,
-        },
+      return submitComment(apiClient, {
+        refId: id,
+        text: content,
+        isReply: true,
+        isOwner: true,
       })
     },
     onMutate({ id }) {

@@ -22,6 +22,8 @@ if (isServerSide) {
 export const $fetch = createFetch({
   defaults: {
     timeout: 8000,
+    // Reader sessions live on the API origin and require cross-origin cookies.
+    credentials: 'include',
     // next: { revalidate: 3 },
     headers: globalConfigureHeader,
     onRequest(context) {
