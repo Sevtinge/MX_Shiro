@@ -6,6 +6,7 @@ import { produce } from 'immer'
 import { useSearchParams } from 'next/navigation'
 
 import { submitComment } from '~/lib/comment-request'
+import { hideDeletedComment } from '~/lib/comment-visibility'
 import { apiClient } from '~/lib/request'
 import { toast } from '~/lib/toast'
 
@@ -67,10 +68,14 @@ export const useDeleteCommentMutation = (options?: MutationOptions<any>) => {
       )
     },
     onSuccess: (...rest) => {
+      hideDeletedComment(queryClient, rest[1].id)
       toast.success('删除成功')
       options?.onSuccess?.apply(null, rest as any)
     },
     onError: () => {
+      queryClient.invalidateQueries({
+        queryKey: commentAdmin.byState(state).queryKey,
+      })
       toast.error('删除失败')
     },
   })

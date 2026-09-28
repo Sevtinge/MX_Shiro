@@ -4,6 +4,7 @@ import { useContext, useMemo } from 'react'
 
 import { RelativeTime } from '~/components/ui/relative-time'
 import { EllipsisHorizontalTextWithTooltip } from '~/components/ui/typography'
+import { isDeletedComment } from '~/lib/comment-visibility'
 import { clsxm } from '~/lib/helper'
 import { apiClient } from '~/lib/request'
 
@@ -61,22 +62,24 @@ export const CommentContentCell: Component<{ comment: CommentModel }> = (
         <CommentMarkdown>{text}</CommentMarkdown>
       </div>
 
-      {parentComment && typeof parentComment !== 'string' && (
-        <div className="relative mt-2 break-words">
-          <blockquote className="ml-3 pl-3 before:absolute before:inset-y-0 before:left-[3px] before:h-full before:w-[3px] before:rounded-lg before:bg-accent before:content-['']">
-            <div>
-              <CommentUrlRender
-                author={parentComment.author}
-                url={parentComment.url}
-              />{' '}
-              在 <RelativeTime date={parentComment.created} /> 说：
-            </div>
-            <div className="mt-2">
-              <CommentMarkdown>{parentComment.text}</CommentMarkdown>
-            </div>
-          </blockquote>
-        </div>
-      )}
+      {parentComment &&
+        typeof parentComment !== 'string' &&
+        !isDeletedComment(parentComment) && (
+          <div className="relative mt-2 break-words">
+            <blockquote className="ml-3 pl-3 before:absolute before:inset-y-0 before:left-[3px] before:h-full before:w-[3px] before:rounded-lg before:bg-accent before:content-['']">
+              <div>
+                <CommentUrlRender
+                  author={parentComment.author}
+                  url={parentComment.url}
+                />{' '}
+                在 <RelativeTime date={parentComment.created} /> 说：
+              </div>
+              <div className="mt-2">
+                <CommentMarkdown>{parentComment.text}</CommentMarkdown>
+              </div>
+            </blockquote>
+          </div>
+        )}
 
       <CommentAction comment={props.comment} />
     </div>

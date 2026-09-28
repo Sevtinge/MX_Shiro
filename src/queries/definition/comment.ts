@@ -4,6 +4,7 @@ import type {
   PaginateResult,
 } from '@mx-space/api-client'
 
+import { isDeletedComment } from '~/lib/comment-visibility'
 import { apiClient } from '~/lib/request'
 
 import { defineQuery } from '../helper'
@@ -23,7 +24,10 @@ export const commentAdmin = {
           },
         })
 
-        return response
+        return {
+          ...response,
+          data: response.data.filter((comment) => !isDeletedComment(comment)),
+        }
       },
     }),
 }

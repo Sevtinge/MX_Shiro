@@ -9,6 +9,7 @@ import { memo, useEffect, useMemo } from 'react'
 import { ErrorBoundary } from '~/components/common/ErrorBoundary'
 import { NotSupport } from '~/components/common/NotSupport'
 import { BottomToUpSoftScaleTransitionView } from '~/components/ui/transition'
+import { filterDeletedComments } from '~/lib/comment-visibility'
 import { apiClient } from '~/lib/request'
 import { buildCommentsQueryKey } from '~/queries/keys'
 import { WsEvent } from '~/socket/util'
@@ -72,6 +73,18 @@ export const Comments: FC<CommentBaseProps> = ({ refId }) => {
     initialPageParam: 1 as number | undefined,
   })
 
+  const visiblePages = useMemo(
+    () =>
+      data?.pages.map((page) => ({
+        page: page.pagination.currentPage,
+        comments: filterDeletedComments(page.data),
+      })) || [],
+    [data],
+  )
+  const hasVisibleComments = visiblePages.some(
+    ({ comments }) => comments.length > 0,
+  )
+
   const readers = useMemo(() => {
     if (!data) return {}
     return data?.pages.reduce(
@@ -82,28 +95,32 @@ export const Comments: FC<CommentBaseProps> = ({ refId }) => {
   if (isLoading) {
     return <CommentSkeleton />
   }
-  if (!data || data.pages.length === 0 || data.pages[0].data.length === 0)
-    return (
-      <div className="center flex min-h-[400px]">
-        <NotSupport text="这里还没有评论呢" />
-      </div>
-    )
   return (
     <ErrorBoundary>
       <CommentProvider readers={readers}>
-        <ul className="min-h-[400px] list-none space-y-4">
-          {data?.pages.map((data, index) => (
-            <BottomToUpSoftScaleTransitionView key={index}>
-              {data.data.map((comment) => (
-                <CommentListItem
-                  comment={comment}
-                  key={comment.id}
-                  refId={refId}
-                />
-              ))}
-            </BottomToUpSoftScaleTransitionView>
-          ))}
-        </ul>
+        {hasVisibleComments ? (
+          <ul className="min-h-[400px] list-none space-y-4">
+            {visiblePages.map(({ comments, page }) =>
+              comments.length > 0 ? (
+                <BottomToUpSoftScaleTransitionView key={page}>
+                  {comments.map((comment) => (
+                    <CommentListItem
+                      comment={comment}
+                      key={comment.id}
+                      refId={refId}
+                    />
+                  ))}
+                </BottomToUpSoftScaleTransitionView>
+              ) : null,
+            )}
+          </ul>
+        ) : (
+          <div className="center flex min-h-[400px]">
+            <NotSupport
+              text={hasNextPage ? '当前页暂无可显示的评论' : '这里还没有评论呢'}
+            />
+          </div>
+        )}
       </CommentProvider>
 
       {hasNextPage && (

@@ -22,6 +22,7 @@ import {
 import { sayQueryKey } from '~/components/modules/say/hooks'
 import { DOMCustomEvents } from '~/constants/event'
 import { TrackerAction } from '~/constants/tracker'
+import { hideDeletedComment } from '~/lib/comment-visibility'
 import { isDev } from '~/lib/env'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { toast } from '~/lib/toast'
@@ -246,6 +247,13 @@ export const eventHandler = (
             })
           },
         )
+      }
+      break
+    }
+
+    case EventTypes.COMMENT_DELETE: {
+      if (typeof data?.id === 'string') {
+        hideDeletedComment(queryClient, data.id)
       }
       break
     }
