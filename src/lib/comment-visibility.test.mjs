@@ -193,7 +193,11 @@ test('delete events update cached threads and invalidate public and admin querie
   )
   assert.deepEqual(client.getQueryData(otherKey), other)
   assert.equal(client.getQueryData(unrelatedKey), unrelated)
-  assert.deepEqual(invalidated, [['comments'], ['comment', 'admin']])
+  assert.deepEqual(invalidated, [
+    ['comments'],
+    ['comment', 'admin'],
+    ['home-activity-recent'],
+  ])
   client.clear()
 })
 

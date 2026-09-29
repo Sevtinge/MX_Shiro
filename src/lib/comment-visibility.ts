@@ -78,4 +78,7 @@ export const hideDeletedComment = (queryClient: QueryClient, id: string) => {
   // lists to also update admin rows and references to the deleted parent.
   queryClient.invalidateQueries({ queryKey: ['comments'] })
   queryClient.invalidateQueries({ queryKey: ['comment', 'admin'] })
+  // Activity items identify the article, not the comment. Refetch this feed
+  // instead of removing unrelated comments by a misleading item id.
+  queryClient.invalidateQueries({ queryKey: ['home-activity-recent'] })
 }

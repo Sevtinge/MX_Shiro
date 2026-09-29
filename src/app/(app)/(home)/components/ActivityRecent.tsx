@@ -7,6 +7,7 @@ import { useMemo } from 'react'
 
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { softBouncePreset } from '~/constants/spring'
+import { filterDeletedCommentActivities } from '~/lib/activity-visibility'
 import { apiClient } from '~/lib/request'
 
 import { ActivityCard, iconClassName } from './ActivityCard'
@@ -27,7 +28,10 @@ export const ActivityRecent = () => {
   })
 
   const flatData = useMemo(() => {
-    return [...Object.entries(data || {})]
+    // Filter at render time too, so persisted caches from earlier releases
+    // cannot display deleted comment placeholders while the feed refetches.
+    const visibleData = filterDeletedCommentActivities(data || {})
+    return [...Object.entries(visibleData)]
       .flatMap(([type, items]) => {
         if (!Array.isArray(items)) return []
         return items.map((item: any) => {

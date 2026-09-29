@@ -12,6 +12,7 @@ import {
   IcTwotoneSignpost,
   MdiLightbulbOn20,
 } from '~/components/icons/menu-collection'
+import { isDeletedCommentActivity } from '~/lib/activity-visibility'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
 
@@ -185,6 +186,10 @@ export const ActivityCard = ({ activity }: { activity: ReactActivityType }) => {
       }
     }
   }, [activity, siteOwner?.avatar])
+
+  if (activity.bizType === 'comment' && isDeletedCommentActivity(activity)) {
+    return null
+  }
 
   return <div className="pb-4 text-base">{Content}</div>
 }
