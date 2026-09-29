@@ -2,10 +2,11 @@
 
 import type { PostModel } from '@mx-space/api-client'
 import { useRouter } from 'next/navigation'
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 
 import { MdiClockOutline } from '~/components/icons/clock'
 import { FeHash } from '~/components/icons/fa-hash'
+import { ReadingTimeIcon } from '~/components/icons/ReadingTimeIcon'
 import { ThumbsupIcon } from '~/components/icons/thumbs-up'
 import { MotionButtonBase } from '~/components/ui/button'
 import { FloatPopover } from '~/components/ui/float-popover'
@@ -14,18 +15,26 @@ import { NumberSmoothTransition } from '~/components/ui/number-transition/Number
 import { RelativeTime } from '~/components/ui/relative-time'
 import { useIsClient } from '~/hooks/common/use-is-client'
 import { clsxm } from '~/lib/helper'
+import { estimateReadingMinutes } from '~/lib/reading-time'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 
 import { TagDetailModal } from './fab/PostTagsFAB'
 
 export const PostMetaBar: Component<{
   meta: Partial<
-    Pick<PostModel, 'created' | 'modified' | 'category' | 'tags' | 'count'>
+    Pick<
+      PostModel,
+      'created' | 'modified' | 'category' | 'tags' | 'count' | 'text'
+    >
   >
 }> = ({ className, meta, children }) => {
   const { present } = useModalStack()
   const router = useRouter()
   const isClient = useIsClient()
+  const readingMinutes = useMemo(
+    () => (meta.text ? estimateReadingMinutes(meta.text) : null),
+    [meta.text],
+  )
   return (
     <div
       className={clsxm(
@@ -110,6 +119,15 @@ export const PostMetaBar: Component<{
         </div>
       )}
 
+      {readingMinutes !== null && (
+        <div
+          className="flex shrink-0 items-center space-x-1"
+          title="根据正文估算的阅读时间"
+        >
+          <ReadingTimeIcon aria-hidden="true" />
+          <span>约 {readingMinutes} 分钟阅读</span>
+        </div>
+      )}
       {!!meta.count?.read && (
         <div className="flex min-w-0 items-center space-x-1">
           <i className="i-mingcute-eye-2-line" />

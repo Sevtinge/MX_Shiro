@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from 'next-themes'
+import type { MouseEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { tv } from 'tailwind-variants'
 
@@ -114,10 +115,20 @@ const ThemeIndicator = () => {
 const ButtonGroup = () => {
   const { setTheme } = useTheme()
 
-  const buildThemeTransition = (theme: 'light' | 'dark' | 'system') => {
+  const buildThemeTransition = (
+    theme: 'light' | 'dark' | 'system',
+    event: MouseEvent<HTMLButtonElement>,
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const origin =
+      event.detail === 0
+        ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+        : { x: event.clientX, y: event.clientY }
     transitionViewIfSupported(() => {
+      // The new theme must be committed before the View Transition takes its snapshot.
+      // eslint-disable-next-line @eslint-react/dom/no-flush-sync
       flushSync(() => setTheme(theme))
-    })
+    }, origin)
   }
 
   return (
@@ -126,8 +137,8 @@ const ButtonGroup = () => {
         aria-label="Switch to light theme"
         type="button"
         className={styles.base}
-        onClick={() => {
-          buildThemeTransition('light')
+        onClick={(event) => {
+          buildThemeTransition('light', event)
         }}
       >
         <SunIcon />
@@ -136,8 +147,8 @@ const ButtonGroup = () => {
         aria-label="Switch to system theme"
         className={styles.base}
         type="button"
-        onClick={() => {
-          buildThemeTransition('system')
+        onClick={(event) => {
+          buildThemeTransition('system', event)
         }}
       >
         <SystemIcon />
@@ -146,8 +157,8 @@ const ButtonGroup = () => {
         aria-label="Switch to dark theme"
         className={styles.base}
         type="button"
-        onClick={() => {
-          buildThemeTransition('dark')
+        onClick={(event) => {
+          buildThemeTransition('dark', event)
         }}
       >
         <DarkIcon />

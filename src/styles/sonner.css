@@ -1,28 +1,42 @@
-/* sonner */
+/* Keep the tint on the toast itself. Sonner uses ::before as an oversized
+   swipe hit area, so a gradient on that pseudo-element escapes the toast. */
 [data-sonner-toast] {
-  &[data-type='success']::before,
-  &[data-type='error']::before,
-  &[data-type='info']::before,
-  &[data-type='warning']::before {
-    content: '';
-    border-radius: var(--border-radius);
+  --toast-tint-opacity: 0.1;
+}
 
-    @apply pointer-events-none absolute inset-0 z-[-1] !transform-none opacity-10 dark:opacity-20;
-  }
+[data-sonner-toaster][data-sonner-theme='dark'] [data-sonner-toast] {
+  --toast-tint-opacity: 0.2;
+}
 
-  &[data-type='success']::before {
-    background: linear-gradient(to left, #56b4d3, #348f50);
-  }
+[data-sonner-toast][data-styled='true'][data-type='success'] {
+  background-image: linear-gradient(
+    to left,
+    rgb(86 180 211 / var(--toast-tint-opacity)),
+    rgb(52 143 80 / var(--toast-tint-opacity))
+  );
+}
 
-  &[data-type='error']::before {
-    background: linear-gradient(to right, #ee9ca7, #ffdde1);
-  }
+[data-sonner-toast][data-styled='true'][data-type='error'] {
+  background-image: linear-gradient(
+    to right,
+    rgb(238 156 167 / var(--toast-tint-opacity)),
+    rgb(255 221 225 / var(--toast-tint-opacity))
+  );
+}
 
-  &[data-type='info']::before {
-    background: linear-gradient(to right, #64a7d5, #6dd5fa, #c5eef4);
-  }
+[data-sonner-toast][data-styled='true'][data-type='info'] {
+  background-image: linear-gradient(
+    to right,
+    rgb(100 167 213 / var(--toast-tint-opacity)),
+    rgb(109 213 250 / var(--toast-tint-opacity)),
+    rgb(197 238 244 / var(--toast-tint-opacity))
+  );
+}
 
-  &[data-type='warning']::before {
-    background: linear-gradient(to right, #f2994a, #f2c94c);
-  }
+[data-sonner-toast][data-styled='true'][data-type='warning'] {
+  background-image: linear-gradient(
+    to right,
+    rgb(242 153 74 / var(--toast-tint-opacity)),
+    rgb(242 201 76 / var(--toast-tint-opacity))
+  );
 }

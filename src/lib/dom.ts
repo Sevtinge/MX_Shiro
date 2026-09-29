@@ -5,16 +5,45 @@ export const stopPropagation: ReactEventHandler<any> = (e) =>
 
 export const preventDefault: ReactEventHandler<any> = (e) => e.preventDefault()
 
-export const transitionViewIfSupported = (updateCb: () => any) => {
-  if (window.matchMedia(`(prefers-reduced-motion: reduce)`).matches) {
+let themeTransitionId = 0
+
+export const transitionViewIfSupported = (
+  updateCb: () => any,
+  origin?: { x: number; y: number },
+) => {
+  if (
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    !document.startViewTransition
+  ) {
     updateCb()
     return
   }
-  if (document.startViewTransition) {
-    document.startViewTransition(updateCb)
-  } else {
-    updateCb()
+
+  const root = document.documentElement
+  const id = ++themeTransitionId
+  if (origin) {
+    const { x, y } = origin
+    const radius =
+      Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y),
+      ) + 360
+    root.style.setProperty('--theme-reveal-x', `${x}px`)
+    root.style.setProperty('--theme-reveal-y', `${y}px`)
+    root.style.setProperty('--theme-reveal-end', `${radius}px`)
+    root.classList.add('theme-reveal')
   }
+
+  const transition = document.startViewTransition(updateCb)
+  const cleanup = () => {
+    if (id !== themeTransitionId) return
+    root.classList.remove('theme-reveal')
+    root.style.removeProperty('--theme-reveal-x')
+    root.style.removeProperty('--theme-reveal-y')
+    root.style.removeProperty('--theme-reveal-end')
+  }
+  // A replaced transition may reject `finished`; both paths need cleanup.
+  void transition.finished.then(cleanup, cleanup)
 }
 
 export function escapeSelector(selector: string) {

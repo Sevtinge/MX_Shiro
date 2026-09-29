@@ -33,34 +33,36 @@ details summary {
   background-color: theme(colors.accent/0.3);
 }
 
-::view-transition-new(root) {
-  animation: turnOff 800ms ease-in-out;
+/* Reveal the new theme from the clicked control, with a feathered circle edge. */
+@property --theme-reveal-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
 }
-::view-transition-old(root) {
+
+html.theme-reveal::view-transition-old(root),
+html.theme-reveal::view-transition-new(root) {
   animation: none;
+  mix-blend-mode: normal;
 }
 
-@keyframes turnOn {
-  0% {
-    clip-path: polygon(0% 0%, 100% 0, 100% 0, 0 0);
-  }
-  100% {
-    clip-path: polygon(0% 0%, 100% 0, 100% 100%, 0 100%);
-  }
+html.theme-reveal::view-transition-new(root) {
+  animation: theme-reveal 1250ms cubic-bezier(0.2, 0.72, 0.22, 1) both;
+  mask-image: radial-gradient(
+    circle at var(--theme-reveal-x) var(--theme-reveal-y),
+    #000 max(0px, calc(var(--theme-reveal-radius) - 320px)),
+    rgb(0 0 0 / 92%) max(0px, calc(var(--theme-reveal-radius) - 260px)),
+    rgb(0 0 0 / 65%) max(0px, calc(var(--theme-reveal-radius) - 175px)),
+    rgb(0 0 0 / 24%) max(0px, calc(var(--theme-reveal-radius) - 70px)),
+    transparent var(--theme-reveal-radius)
+  );
 }
 
-[data-theme='dark']::view-transition-new(root) {
-  animation: turnOn 800ms ease-in-out;
-}
-::view-transition-old(root) {
-  animation: none;
-}
-
-@keyframes turnOff {
-  0% {
-    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
+@keyframes theme-reveal {
+  from {
+    --theme-reveal-radius: 0px;
   }
-  100% {
-    clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0);
+  to {
+    --theme-reveal-radius: var(--theme-reveal-end);
   }
 }

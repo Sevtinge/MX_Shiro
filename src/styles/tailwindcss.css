@@ -1,6 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Prevent operator ligatures in code even if the browser falls back to another font. */
+:where(code, pre, kbd, samp, .font-mono) {
+  font-variant-ligatures: none;
+  font-feature-settings:
+    'liga' 0,
+    'calt' 0,
+    'dlig' 0;
+}
 
 html {
   font-size: 14px;

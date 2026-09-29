@@ -6,11 +6,7 @@ import { advanceGlowSpring, clampGlow } from '~/lib/hero-glow-physics'
 
 import styles from './HeroGlow.module.css'
 
-export const HeroGlow = ({
-  skipEntrance = false,
-}: {
-  skipEntrance?: boolean
-}) => {
+export const HeroGlow = () => {
   const sceneRef = useRef<HTMLDivElement>(null)
   const nearGlowRef = useRef<HTMLDivElement>(null)
   const farGlowRef = useRef<HTMLDivElement>(null)
@@ -168,11 +164,7 @@ export const HeroGlow = ({
   }, [])
 
   return (
-    <div
-      aria-hidden="true"
-      className={`${styles.scene} ${skipEntrance ? styles.noEntrance : ''}`}
-      ref={sceneRef}
-    >
+    <div aria-hidden="true" className={styles.scene} ref={sceneRef}>
       <div className={styles.ambient} />
       <div className={styles.nearMotion} ref={nearGlowRef}>
         <div className={styles.nearGlow} />

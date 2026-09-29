@@ -5,14 +5,7 @@ import { atom, useAtom } from 'jotai'
 import { m } from 'motion/react'
 import type { FC } from 'react'
 import * as React from 'react'
-import {
-  memo,
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { Divider } from '~/components/ui/divider'
 import { RightToLeftTransitionView } from '~/components/ui/transition'
@@ -27,18 +20,18 @@ import { TocItem } from './TocItem'
 
 const tocActiveIdAtom = atom<string | null>(null)
 
-function useActiveId($headings: HTMLHeadingElement[]) {
+function useActiveId(
+  $headings: HTMLHeadingElement[],
+  navigationLockRef: React.RefObject<string | null>,
+  getCurrentHeadingId: () => string | null,
+) {
   const [activeId, setActiveId] = useAtom(tocActiveIdAtom)
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            startTransition(() => {
-              setActiveId(entry.target.id)
-            })
-          }
-        })
+      () => {
+        if (navigationLockRef.current) return
+        // A heading merely entering the viewport isn't the current section.
+        setActiveId(getCurrentHeadingId())
       },
       { rootMargin: `-100px 0px -100px 0px` },
     )
@@ -48,7 +41,7 @@ function useActiveId($headings: HTMLHeadingElement[]) {
     return () => {
       observer.disconnect()
     }
-  }, [$headings])
+  }, [$headings, getCurrentHeadingId, navigationLockRef, setActiveId])
 
   return [activeId, setActiveId] as const
 }
@@ -72,7 +65,69 @@ export const TocTree: Component<
   scrollInNextTick,
   onItemClick,
 }) => {
-  const [activeId, setActiveId] = useActiveId($headings)
+  const navigationLockRef = useRef<string | null>(null)
+  const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const interruptFrameRef = useRef<number | null>(null)
+  const getCurrentHeadingId = useCallback(() => {
+    // The current section is the last heading that has reached the sticky header.
+    let current = $headings[0]
+    for (const heading of $headings) {
+      if (!heading.isConnected) continue
+      if (heading.getBoundingClientRect().top > 120) break
+      current = heading
+    }
+    return current?.id ?? null
+  }, [$headings])
+  const [activeId, setActiveId] = useActiveId(
+    $headings,
+    navigationLockRef,
+    getCurrentHeadingId,
+  )
+
+  useEffect(() => {
+    const unlock = () => {
+      if (!navigationLockRef.current) return
+      navigationLockRef.current = null
+      if (lockTimeoutRef.current) clearTimeout(lockTimeoutRef.current)
+      lockTimeoutRef.current = null
+      if (interruptFrameRef.current !== null)
+        cancelAnimationFrame(interruptFrameRef.current)
+      // Read after the browser applies the user's wheel/touch/keyboard movement.
+      interruptFrameRef.current = requestAnimationFrame(() => {
+        interruptFrameRef.current = null
+        if (navigationLockRef.current) return
+        setActiveId(getCurrentHeadingId())
+      })
+    }
+    const unlockOnKey = (event: KeyboardEvent) => {
+      if (
+        [
+          'ArrowUp',
+          'ArrowDown',
+          'PageUp',
+          'PageDown',
+          'Home',
+          'End',
+          ' ',
+        ].includes(event.key)
+      )
+        unlock()
+    }
+    window.addEventListener('wheel', unlock, { passive: true })
+    window.addEventListener('touchmove', unlock, { passive: true })
+    window.addEventListener('pointerdown', unlock, { passive: true })
+    window.addEventListener('keydown', unlockOnKey)
+    return () => {
+      window.removeEventListener('wheel', unlock)
+      window.removeEventListener('touchmove', unlock)
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlockOnKey)
+      if (lockTimeoutRef.current) clearTimeout(lockTimeoutRef.current)
+      if (interruptFrameRef.current !== null)
+        cancelAnimationFrame(interruptFrameRef.current)
+      navigationLockRef.current = null
+    }
+  }, [getCurrentHeadingId, setActiveId])
 
   const toc: ITocItem[] = useMemo(() => {
     return Array.from($headings).map((el, idx) => {
@@ -113,10 +168,22 @@ export const TocTree: Component<
       onItemClick?.(tocRef.current[i])
 
       if ($el) {
+        if (interruptFrameRef.current !== null)
+          cancelAnimationFrame(interruptFrameRef.current)
+        interruptFrameRef.current = null
+        navigationLockRef.current = anchorId
+        setActiveId(anchorId)
+        if (lockTimeoutRef.current) clearTimeout(lockTimeoutRef.current)
+        lockTimeoutRef.current = setTimeout(() => {
+          if (navigationLockRef.current === anchorId) {
+            navigationLockRef.current = null
+            setActiveId(getCurrentHeadingId())
+          }
+          lockTimeoutRef.current = null
+        }, 5000)
+
         const handle = () => {
-          springScrollToElement($el, -100).then(() => {
-            setActiveId?.(anchorId)
-          })
+          springScrollToElement($el, -100, { followLayout: true })
         }
         if (scrollInNextTick) {
           requestAnimationFrame(() => {
@@ -125,7 +192,7 @@ export const TocTree: Component<
         } else handle()
       }
     },
-    [],
+    [getCurrentHeadingId, onItemClick, scrollInNextTick, setActiveId, tocRef],
   )
   const accessoryElement = useMemo(() => {
     if (!accessory) return null
@@ -192,14 +259,16 @@ const MemoedItem = memo<{
     // 把当前 active Item 滚动到容器的中间
     const containerHeight = $container.clientHeight
     const itemHeight = $item.clientHeight
-    const itemOffsetTop = $item.offsetTop
-    const { scrollTop } = $container
-
-    const itemTop = itemOffsetTop - scrollTop
+    const itemTop =
+      $item.getBoundingClientRect().top -
+      $container.getBoundingClientRect().top +
+      $container.scrollTop
     const itemBottom = itemTop + itemHeight
-    if (itemTop < 0 || itemBottom > containerHeight) {
-      $container.scrollTop =
-        itemOffsetTop - containerHeight / 2 + itemHeight / 2
+    if (
+      itemTop < $container.scrollTop ||
+      itemBottom > $container.scrollTop + containerHeight
+    ) {
+      $container.scrollTop = itemTop - (containerHeight - itemHeight) / 2
     }
   }, [isActive])
 
@@ -220,6 +289,13 @@ const MemoedItem = memo<{
         <m.span
           layoutId="active-toc-item"
           layout
+          transition={{
+            layout: {
+              type: 'tween',
+              duration: 0.22,
+              ease: 'easeOut',
+            },
+          }}
           className="absolute inset-y-[3px] left-0 w-[2px] rounded-sm bg-accent"
         />
       )}

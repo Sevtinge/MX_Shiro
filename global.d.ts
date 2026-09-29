@@ -49,7 +49,7 @@ declare module '@mx-space/api-client' {
       | string
       | { type?: string; message: string }
       | (string | { type?: string; message: string })[]
-    aiGen?: boolean | string
+    aiGen?: boolean | string | number | (number | string)[]
   }
   interface TextBaseModel extends BaseCommentIndexModel {
     meta?: PostMeta

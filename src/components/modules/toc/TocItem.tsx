@@ -1,7 +1,7 @@
 'use client'
 
 import type { FC, MouseEvent } from 'react'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { tv } from 'tailwind-variants'
 
 import { clsxm } from '~/lib/helper'
@@ -36,14 +36,6 @@ export const TocItem: FC<{
   const { active, rootDepth, onClick, heading } = props
   const { $heading, anchorId, depth, index, title } = heading
 
-  const $ref = useRef<HTMLAnchorElement>(null)
-
-  useEffect(() => {
-    if (active) {
-      $ref.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [])
-
   const renderDepth = useMemo(() => {
     const result = depth - rootDepth
 
@@ -52,7 +44,6 @@ export const TocItem: FC<{
 
   return (
     <a
-      ref={$ref}
       data-index={index}
       href={`#${anchorId}`}
       className={clsxm(

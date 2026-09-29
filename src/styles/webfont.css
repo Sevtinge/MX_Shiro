@@ -1,3 +1,21 @@
+/* Cascadia Mono is the non-ligature counterpart of Cascadia Code. */
+@font-face {
+  font-family: 'Cascadia Mono';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource-variable/cascadia-mono@5.3.0/files/cascadia-mono-latin-wght-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cascadia Mono';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource-variable/cascadia-mono@5.3.0/files/cascadia-mono-latin-wght-italic.woff2')
+    format('woff2');
+  font-style: italic;
+  font-weight: 200 700;
+  font-display: swap;
+}
 @font-face {
   font-family: 'OperatorMonoSSmLig Nerd Font';
   src:
@@ -44,7 +62,8 @@
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap'),
+  src:
+    url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap'),
     url('https://fonts.googleapis.com/css2?family=Fira+Code:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
   font-weight: normal;
   font-style: normal;

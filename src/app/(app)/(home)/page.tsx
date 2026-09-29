@@ -7,7 +7,6 @@ import Image from 'next/image'
 import type * as React from 'react'
 import { createElement } from 'react'
 
-import { useSkipHomeEntrance } from '~/atoms/home-entrance'
 import { ErrorBoundary } from '~/components/common/ErrorBoundary'
 import {
   FaSolidComments,
@@ -42,12 +41,11 @@ import { HeroGlow } from './components/HeroGlow'
 import { SiteStats } from './components/SiteStats'
 
 export default function Home() {
-  const skipEntrance = useSkipHomeEntrance()
   return (
     <div>
-      <Hero skipEntrance={skipEntrance} />
-      <ActivityScreen skipEntrance={skipEntrance} />
-      <Windsock skipEntrance={skipEntrance} />
+      <Hero />
+      <ActivityScreen />
+      <Windsock />
     </div>
   )
 }
@@ -92,7 +90,7 @@ const TwoColumnLayout = ({
   )
 }
 
-const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
+const Hero = () => {
   const { title, description, bottomText } = useAppConfigSelector((config) => {
     return {
       ...config.hero,
@@ -108,7 +106,7 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
     }, 0) * 50
   return (
     <div className="relative isolate -mx-4 -mt-[4.5rem] min-w-0 max-w-screen overflow-visible px-4 pt-[9.5rem] md:mx-0 md:mt-20 md:overflow-hidden md:px-0 md:pt-0 lg:mt-[-4.5rem] lg:h-dvh lg:min-h-[800px]">
-      <HeroGlow skipEntrance={skipEntrance} />
+      <HeroGlow />
       <TwoColumnLayout
         className="z-[1]"
         leftContainerClassName="mt-[120px] lg:mt-0 lg:h-[15rem] lg:h-1/2"
@@ -116,7 +114,7 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
         <>
           <m.div
             className="group relative text-center leading-[4] lg:text-left [&_*]:inline-block"
-            initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
+            initial={{ opacity: 0.0001, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={softBouncePreset}
           >
@@ -132,7 +130,6 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
                 { key: i, className: t.class },
                 t.text && (
                   <TextUpTransitionView
-                    appear={!skipEntrance}
                     initialDelay={prevAllTextLength * 0.05}
                     eachDelay={0.05}
                   >
@@ -144,7 +141,6 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
           </m.div>
 
           <BottomToUpTransitionView
-            {...(skipEntrance ? { initial: false } : {})}
             delay={titleAnimateD + 500}
             transition={softBouncePreset}
             className="my-3 text-center lg:text-left"
@@ -159,7 +155,6 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
                 return (
                   <BottomToUpTransitionView
                     key={type}
-                    {...(skipEntrance ? { initial: false } : {})}
                     delay={index * 100 + titleAnimateD + 500}
                     className="inline-block"
                     as="li"
@@ -174,7 +169,7 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
 
         <m.div
           initial={
-            skipEntrance || prefersReducedMotion
+            prefersReducedMotion
               ? false
               : { opacity: 0, filter: 'blur(24px)', scale: 1.22 }
           }
@@ -200,7 +195,7 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
         </m.div>
 
         <m.div
-          initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
+          initial={{ opacity: 0.0001, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={softBouncePreset}
           className={clsx(
@@ -226,16 +221,16 @@ const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
   )
 }
 
-const ActivityScreen = ({ skipEntrance }: { skipEntrance: boolean }) => {
+const ActivityScreen = () => {
   return (
     <div className="mt-24">
       <TwoColumnLayout
         rightContainerClassName="block lg:flex [&>div]:w-full pr-4"
         leftContainerClassName="[&>div]:w-full"
       >
-        <ActivityPostList skipEntrance={skipEntrance} />
+        <ActivityPostList />
         <ErrorBoundary>
-          <ActivityRecent skipEntrance={skipEntrance} />
+          <ActivityRecent />
         </ErrorBoundary>
       </TwoColumnLayout>
     </div>
@@ -283,7 +278,7 @@ const windsock = [
   },
 ]
 
-const Windsock = ({ skipEntrance }: { skipEntrance: boolean }) => {
+const Windsock = () => {
   const likeQueryKey = ['site-like']
   const { data: count } = useQuery({
     queryKey: likeQueryKey,
@@ -303,23 +298,19 @@ const Windsock = ({ skipEntrance }: { skipEntrance: boolean }) => {
           {windsock.map((item, index) => {
             return (
               <m.li
-                initial={skipEntrance ? false : { opacity: 0.0001, y: 10 }}
+                initial={{ opacity: 0.0001, y: 10 }}
                 viewport={{ once: true }}
-                whileInView={
-                  skipEntrance
-                    ? undefined
-                    : {
-                        opacity: 1,
-                        y: 0,
-                        transition: {
-                          stiffness: 641,
-                          damping: 23,
-                          mass: 3.9,
-                          type: 'spring',
-                          delay: index * 0.05,
-                        },
-                      }
-                }
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    stiffness: 641,
+                    damping: 23,
+                    mass: 3.9,
+                    type: 'spring',
+                    delay: index * 0.05,
+                  },
+                }}
                 transition={{
                   delay: 0.001,
                 }}

@@ -13,11 +13,7 @@ import { apiClient } from '~/lib/request'
 import { ActivityCard, iconClassName } from './ActivityCard'
 import type { ReactActivityType } from './types'
 
-export const ActivityRecent = ({
-  skipEntrance = false,
-}: {
-  skipEntrance?: boolean
-}) => {
+export const ActivityRecent = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['home-activity-recent'],
     queryFn: async () => {
@@ -50,10 +46,10 @@ export const ActivityRecent = ({
 
   return (
     <m.div
-      initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
+      initial={{ opacity: 0.0001, y: 50 }}
       transition={softBouncePreset}
       className="mt-8 w-full text-lg lg:mt-0"
-      whileInView={skipEntrance ? undefined : { opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
     >
       <m.h2 className="mb-8 text-2xl font-medium leading-loose lg:ml-14">

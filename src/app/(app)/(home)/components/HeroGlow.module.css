@@ -129,17 +129,6 @@
   }
 }
 
-.noEntrance .ambient {
-  animation: none;
-  opacity: var(--ambient-opacity, 1);
-}
-
-.noEntrance .nearGlow,
-.noEntrance .farGlow {
-  animation: none;
-  opacity: var(--halo-opacity, 1);
-  transform: none;
-}
 @media (prefers-reduced-motion: reduce) {
   .ambient,
   .nearGlow,

@@ -5,6 +5,7 @@ import { memo } from 'react'
 import RemoveMarkdown from 'remove-markdown'
 
 import { PostPinIcon } from '~/components/modules/post/PostPinIcon'
+import { getPostPreviewImage } from '~/lib/post-preview-image'
 
 import { PostItemHoverOverlay } from './PostItemHoverOverlay'
 import { PostMetaBar } from './PostMetaBar'
@@ -17,7 +18,7 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
     plainText.length > previewLength
       ? `${plainText.slice(0, previewLength)}...`
       : plainText
-  const hasImage = data.images?.length > 0 && data.images[0].src
+  const previewImage = getPostPreviewImage(data)
   const categorySlug = data.category?.slug
   const postLink = `/posts/${categorySlug}/${data.slug}`
 
@@ -48,13 +49,15 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
           </p>
         )}
         <div className="relative overflow-hidden text-justify">
-          {hasImage && (
+          {previewImage && (
             <div
               className={clsx(
                 'float-right mb-2 ml-3 size-[5.5rem] overflow-hidden rounded-md',
                 'bg-cover bg-center bg-no-repeat',
               )}
-              style={{ backgroundImage: `url(${hasImage})` }}
+              style={{
+                backgroundImage: `url(${JSON.stringify(previewImage)})`,
+              }}
             />
           )}
           <p className="break-all leading-loose text-gray-800/90 dark:text-gray-200/90">

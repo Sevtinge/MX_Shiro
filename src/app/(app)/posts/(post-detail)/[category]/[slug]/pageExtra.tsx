@@ -88,6 +88,7 @@ export const PostMetaBarInternal: Component = ({ className }) => {
       tags: data.tags,
       count: data.count,
       modified: data.modified,
+      text: data.text,
     }
   })
   if (!meta) return null

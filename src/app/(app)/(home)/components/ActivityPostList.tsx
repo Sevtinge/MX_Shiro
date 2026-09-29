@@ -11,16 +11,12 @@ import { routeBuilder, Routes } from '~/lib/route-builder'
 
 import { useHomeQueryData } from '../query'
 
-export const ActivityPostList = ({
-  skipEntrance = false,
-}: {
-  skipEntrance?: boolean
-}) => {
+export const ActivityPostList = () => {
   const { notes, posts } = useHomeQueryData()
   return (
     <m.section
-      initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
-      whileInView={skipEntrance ? undefined : { opacity: 1, y: 0 }}
+      initial={{ opacity: 0.0001, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
       transition={softBouncePreset}
       className="mt-8 flex flex-col gap-4 lg:mt-0"
       viewport={{ once: true }}

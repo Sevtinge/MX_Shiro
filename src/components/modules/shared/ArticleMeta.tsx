@@ -1,17 +1,30 @@
 import type { PostMeta } from '@mx-space/api-client'
 
 import { Banner } from '~/components/ui/banner'
+import { getAiParticipationLabels } from '~/lib/ai-participation'
 
 /** Optional presentation metadata shared by posts and notes. */
 export const ArticleAiDeclaration = ({ aiGen }: Pick<PostMeta, 'aiGen'>) => {
-  if (!aiGen) return null
+  const labels = getAiParticipationLabels(aiGen)
+  if (labels.length === 0) return null
 
   return (
-    <p className="my-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-100">
+    <p className="my-4 flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-100">
       <span className="font-medium">AI 参与声明：</span>
-      <span>
-        {typeof aiGen === 'string' ? aiGen : '本文创作过程中使用了 AI 辅助。'}
-      </span>
+      {Array.isArray(aiGen) ? (
+        <span className="inline-flex flex-wrap gap-1.5">
+          {labels.map((label, index) => (
+            <span
+              key={`${index}-${label}`}
+              className="rounded-md border border-sky-300/70 bg-sky-100 px-2 py-0.5 dark:border-sky-700 dark:bg-sky-900"
+            >
+              {label}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span>{labels[0]}</span>
+      )}
     </p>
   )
 }

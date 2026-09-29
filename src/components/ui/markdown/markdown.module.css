@@ -1,6 +1,10 @@
 .md {
   @apply relative;
 
+  h1[data-markdown-heading='true'] {
+    margin-top: 1.6em;
+  }
+
   h1,
   h2,
   h3,
