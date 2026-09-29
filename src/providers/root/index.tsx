@@ -4,6 +4,7 @@ import { LazyMotion } from 'motion/react'
 import { ThemeProvider } from 'next-themes'
 import type { JSX, PropsWithChildren } from 'react'
 
+import { InertialWheelScroll } from '~/components/common/InertialWheelScroll'
 import { PeekPortal } from '~/components/modules/peek/PeekPortal'
 import { ModalStackProvider } from '~/components/ui/modal'
 import { Toaster } from '~/components/ui/toast'
@@ -47,6 +48,7 @@ export function WebAppProviders({ children }: PropsWithChildren) {
       <ModalStackProvider key="modalStackProvider" />
       <EventProvider key="viewportProvider" />
       <PageScrollInfoProvider key="PageScrollInfoProvider" />
+      <InertialWheelScroll />
       <DebugProvider key="debugProvider" />
       <Toaster />
       <PeekPortal />
