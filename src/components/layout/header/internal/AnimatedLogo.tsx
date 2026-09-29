@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback } from 'react'
 
 import { isLogged } from '~/atoms'
+import { skipHomeEntranceFromHeader } from '~/atoms/home-entrance'
 import { useResolveAdminUrl, useViewport } from '~/atoms/hooks'
 import { useIsClient } from '~/hooks/common/use-is-client'
 import { useSingleAndDoubleClick } from '~/hooks/common/use-single-double-click'
@@ -38,6 +39,7 @@ const TapableLogo = () => {
   const fn = useSingleAndDoubleClick(
     () => {
       if (isLiving) return goLive()
+      skipHomeEntranceFromHeader()
       router.push(Routes.Home)
     },
     () => {

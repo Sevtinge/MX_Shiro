@@ -1,0 +1,30 @@
+.pending {
+  opacity: 0.001;
+  transform: translate3d(0, -26px, 0);
+}
+.enter {
+  animation: header-drop-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes header-drop-in {
+  0% {
+    opacity: 0.001;
+    transform: translate3d(0, -26px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending {
+    opacity: 1;
+    transform: none;
+  }
+
+  .enter {
+    animation: none;
+  }
+}

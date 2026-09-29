@@ -1,0 +1,163 @@
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
+}
+
+.ambient,
+.nearMotion,
+.farMotion {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ambient {
+  inset: -12% -12% 0;
+  background: radial-gradient(
+    ellipse 63% 57% at 50% 43%,
+    oklch(var(--a) / 0.07),
+    transparent 77%
+  );
+  animation: ambient-arrive 2.1s ease-out both;
+}
+
+.nearMotion {
+  top: -55%;
+  left: -42%;
+  width: min(134rem, 136vw);
+  height: min(130rem, 180vh);
+  will-change: transform;
+}
+
+.farMotion {
+  top: 45%;
+  right: -28%;
+  width: min(70rem, 73vw);
+  height: min(61rem, 82vh);
+  will-change: transform;
+}
+
+.nearGlow,
+.farGlow {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  --halo-opacity: 1;
+}
+
+.nearGlow {
+  background: radial-gradient(
+    ellipse at center,
+    oklch(var(--a) / 0.24) 0%,
+    oklch(var(--a) / 0.13) 32%,
+    transparent 73%
+  );
+  animation: halo-arrive 2.25s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+.farGlow {
+  background: radial-gradient(
+    ellipse at center,
+    oklch(var(--a) / 0.16) 0%,
+    oklch(var(--a) / 0.078) 35%,
+    transparent 75%
+  );
+  animation: halo-arrive 2.45s 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+:global(html[data-theme='dark']) .ambient {
+  --ambient-opacity: 0.8;
+}
+
+:global(html[data-theme='dark']) .nearGlow,
+:global(html[data-theme='dark']) .farGlow {
+  --halo-opacity: 0.85;
+}
+
+@keyframes ambient-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: var(--ambient-opacity, 1);
+  }
+}
+
+@keyframes halo-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.78);
+  }
+
+  to {
+    opacity: var(--halo-opacity);
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 767px) {
+  .scene {
+    /* Let the light fade beyond the hero instead of clipping at its edge. */
+    bottom: auto;
+    height: calc(100% + 12rem);
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 15%,
+      #000 52%,
+      transparent 100%
+    );
+  }
+
+  .nearMotion {
+    top: -20%;
+    left: -61%;
+    width: 168vw;
+    height: 110rem;
+  }
+
+  .farMotion {
+    top: 61%;
+    right: -42%;
+    width: 105vw;
+    height: 38rem;
+  }
+}
+
+.noEntrance .ambient {
+  animation: none;
+  opacity: var(--ambient-opacity, 1);
+}
+
+.noEntrance .nearGlow,
+.noEntrance .farGlow {
+  animation: none;
+  opacity: var(--halo-opacity, 1);
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient,
+  .nearGlow,
+  .farGlow {
+    animation: none !important;
+    transform: none !important;
+    opacity: var(--halo-opacity, 1);
+  }
+
+  .nearMotion,
+  .farMotion {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+@media print {
+  .scene {
+    display: none;
+  }
+}

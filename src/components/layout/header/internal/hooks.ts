@@ -1,9 +1,15 @@
 import { atom, useAtomValue, useSetAtom } from 'jotai'
+import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
-import { useIsMobile } from '~/atoms/hooks'
+import { useIsMobile, useViewport } from '~/atoms/hooks'
 import { jotaiStore } from '~/lib/store'
 import { usePageScrollLocationSelector } from '~/providers/root/page-scroll-info-provider'
+
+import {
+  getHeaderBackgroundOpacity,
+  getHeaderBgScrollStart,
+} from './scroll-threshold'
 
 const headerMetaTitleAtom = atom('')
 const headerMetaDescriptionAtom = atom('')
@@ -21,21 +27,18 @@ export const useMenuOpacity = () => {
 export const useMenuVisibility = () => useMenuOpacity() > 0
 
 export const useHeaderBgOpacity = () => {
-  const threshold = 84 + 63 + 50
-  const distance = 50
+  const pathname = usePathname()
+  const viewportHeight = useViewport((viewport) => viewport.h)
+  const threshold = getHeaderBgScrollStart(
+    pathname,
+    viewportHeight || (typeof window === 'undefined' ? 0 : window.innerHeight),
+  )
   const isMobile = useIsMobile()
   const headerShouldShowBg = useHeaderShouldShowBg() || isMobile
 
   return usePageScrollLocationSelector(
-    (y) => {
-      if (y < threshold) return 0
-      return headerShouldShowBg
-        ? y >= distance + threshold
-          ? 1
-          : Math.floor(((y - threshold) / distance) * 100) / 100
-        : 0
-    },
-    [headerShouldShowBg],
+    (y) => getHeaderBackgroundOpacity(y, threshold, headerShouldShowBg),
+    [headerShouldShowBg, threshold],
   )
 }
 

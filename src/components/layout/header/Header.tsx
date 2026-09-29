@@ -15,6 +15,7 @@ import {
 import { HeaderContent } from './internal/HeaderContent'
 import { HeaderDataConfigureProvider } from './internal/HeaderDataConfigureProvider'
 import { HeaderDrawerButton } from './internal/HeaderDrawerButton'
+import { HeaderEntrance } from './internal/HeaderEntrance'
 import { HeaderMeta } from './internal/HeaderMeta'
 import { HeaderWithShadow } from './internal/HeaderWithShadow'
 import { UserAuth } from './internal/UserAuth'
@@ -32,33 +33,35 @@ const MemoedHeader = memo(() => {
   return (
     <HeaderWithShadow>
       <BluredBackground />
-      <div
-        className={clsxm(
-          'relative mx-auto grid h-full min-h-0 max-w-7xl grid-cols-[4.5rem_auto_4.5rem] lg:px-8',
-          styles['header--grid'],
-        )}
-      >
-        <HeaderLeftButtonArea>
-          <HeaderDrawerButton />
-        </HeaderLeftButtonArea>
+      <HeaderEntrance>
+        <div
+          className={clsxm(
+            'relative z-[1] mx-auto grid h-full min-h-0 max-w-7xl grid-cols-[4.5rem_auto_4.5rem] lg:px-8',
+            styles['header--grid'],
+          )}
+        >
+          <HeaderLeftButtonArea>
+            <HeaderDrawerButton />
+          </HeaderLeftButtonArea>
 
-        <HeaderLogoArea>
-          <AnimatedLogo />
+          <HeaderLogoArea>
+            <AnimatedLogo />
 
-          <OnlyMobile>
+            <OnlyMobile>
+              <HeaderMeta />
+            </OnlyMobile>
+          </HeaderLogoArea>
+
+          <HeaderCenterArea>
+            <HeaderContent />
             <HeaderMeta />
-          </OnlyMobile>
-        </HeaderLogoArea>
+          </HeaderCenterArea>
 
-        <HeaderCenterArea>
-          <HeaderContent />
-          <HeaderMeta />
-        </HeaderCenterArea>
-
-        <div className="flex size-full items-center">
-          <UserAuth />
+          <div className="flex size-full items-center">
+            <UserAuth />
+          </div>
         </div>
-      </div>
+      </HeaderEntrance>
     </HeaderWithShadow>
   )
 })

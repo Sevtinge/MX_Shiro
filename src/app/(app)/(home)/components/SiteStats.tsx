@@ -69,7 +69,7 @@ export const SiteStats = () => {
 
   return (
     <div
-      className="mt-3 flex max-w-[90vw] flex-wrap justify-center gap-x-4 gap-y-1 rounded-xl bg-zinc-100/60 px-4 py-2 text-center font-mono text-sm font-medium leading-relaxed text-neutral-800 dark:bg-zinc-800/50 dark:text-neutral-200"
+      className="mt-3 flex max-w-[90vw] flex-wrap justify-center gap-x-4 gap-y-1 rounded-xl bg-white/25 px-4 py-2 text-center font-mono text-sm font-medium leading-relaxed text-neutral-800 ring-1 ring-black/5 backdrop-blur-sm dark:bg-zinc-800/20 dark:text-neutral-200 dark:ring-white/10"
       aria-live="polite"
     >
       <span>文稿 {formatCount(stats?.posts)} 篇</span>

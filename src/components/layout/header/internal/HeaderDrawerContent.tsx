@@ -4,6 +4,7 @@ import { m } from 'motion/react'
 import Link from 'next/link'
 import { memo } from 'react'
 
+import { skipHomeEntranceFromHeader } from '~/atoms/home-entrance'
 import { useSheetContext } from '~/components/ui/sheet/context'
 import { reboundPreset } from '~/constants/spring'
 
@@ -58,7 +59,23 @@ const LinkInternal: typeof Link = memo(function LinkInternal({
 }) {
   const { dismiss } = useSheetContext()
   return (
-    <Link {...rest} onClick={dismiss}>
+    <Link
+      {...rest}
+      onClick={(event) => {
+        if (
+          rest.href === '/' &&
+          event.button === 0 &&
+          !event.defaultPrevented &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          !event.shiftKey &&
+          !event.altKey
+        ) {
+          skipHomeEntranceFromHeader()
+        }
+        dismiss()
+      }}
+    >
       {children}
     </Link>
   )

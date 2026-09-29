@@ -2,11 +2,12 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import clsx from 'clsx'
-import { m } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 import Image from 'next/image'
 import type * as React from 'react'
 import { createElement } from 'react'
 
+import { useSkipHomeEntrance } from '~/atoms/home-entrance'
 import { ErrorBoundary } from '~/components/common/ErrorBoundary'
 import {
   FaSolidComments,
@@ -37,14 +38,16 @@ import {
 
 import { ActivityPostList } from './components/ActivityPostList'
 import { ActivityRecent } from './components/ActivityRecent'
+import { HeroGlow } from './components/HeroGlow'
 import { SiteStats } from './components/SiteStats'
 
 export default function Home() {
+  const skipEntrance = useSkipHomeEntrance()
   return (
     <div>
-      <Hero />
-      <ActivityScreen />
-      <Windsock />
+      <Hero skipEntrance={skipEntrance} />
+      <ActivityScreen skipEntrance={skipEntrance} />
+      <Windsock skipEntrance={skipEntrance} />
     </div>
   )
 }
@@ -89,7 +92,7 @@ const TwoColumnLayout = ({
   )
 }
 
-const Hero = () => {
+const Hero = ({ skipEntrance }: { skipEntrance: boolean }) => {
   const { title, description, bottomText } = useAppConfigSelector((config) => {
     return {
       ...config.hero,
@@ -97,18 +100,23 @@ const Hero = () => {
   })!
   const siteOwner = useAggregationSelector((agg) => agg.user)
   const { avatar, socialIds } = siteOwner || {}
+  const prefersReducedMotion = useReducedMotion()
 
   const titleAnimateD =
     title.template.reduce((acc, cur) => {
       return acc + (cur.text?.length || 0)
     }, 0) * 50
   return (
-    <div className="mt-20 min-w-0 max-w-screen overflow-hidden lg:mt-[-4.5rem] lg:h-dvh lg:min-h-[800px]">
-      <TwoColumnLayout leftContainerClassName="mt-[120px] lg:mt-0 lg:h-[15rem] lg:h-1/2">
+    <div className="relative isolate -mx-4 -mt-[4.5rem] min-w-0 max-w-screen overflow-visible px-4 pt-[9.5rem] md:mx-0 md:mt-20 md:overflow-hidden md:px-0 md:pt-0 lg:mt-[-4.5rem] lg:h-dvh lg:min-h-[800px]">
+      <HeroGlow skipEntrance={skipEntrance} />
+      <TwoColumnLayout
+        className="z-[1]"
+        leftContainerClassName="mt-[120px] lg:mt-0 lg:h-[15rem] lg:h-1/2"
+      >
         <>
           <m.div
             className="group relative text-center leading-[4] lg:text-left [&_*]:inline-block"
-            initial={{ opacity: 0.0001, y: 50 }}
+            initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={softBouncePreset}
           >
@@ -124,6 +132,7 @@ const Hero = () => {
                 { key: i, className: t.class },
                 t.text && (
                   <TextUpTransitionView
+                    appear={!skipEntrance}
                     initialDelay={prevAllTextLength * 0.05}
                     eachDelay={0.05}
                   >
@@ -135,6 +144,7 @@ const Hero = () => {
           </m.div>
 
           <BottomToUpTransitionView
+            {...(skipEntrance ? { initial: false } : {})}
             delay={titleAnimateD + 500}
             transition={softBouncePreset}
             className="my-3 text-center lg:text-left"
@@ -149,6 +159,7 @@ const Hero = () => {
                 return (
                   <BottomToUpTransitionView
                     key={type}
+                    {...(skipEntrance ? { initial: false } : {})}
                     delay={index * 100 + titleAnimateD + 500}
                     className="inline-block"
                     as="li"
@@ -161,7 +172,18 @@ const Hero = () => {
           </ul>
         </>
 
-        <div
+        <m.div
+          initial={
+            skipEntrance || prefersReducedMotion
+              ? false
+              : { opacity: 0, filter: 'blur(24px)', scale: 1.22 }
+          }
+          animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+          transition={{
+            duration: 1.81,
+            delay: 0.18,
+            ease: [0.16, 0.76, 0.2, 1],
+          }}
           className={clsx('lg:size-[300px]', 'size-[200px]', 'mt-24 lg:mt-0')}
         >
           <Image
@@ -169,15 +191,16 @@ const Hero = () => {
             width={300}
             src={avatar!}
             alt="Site Owner Avatar"
+            priority
             className={clsxm(
               'aspect-square rounded-full border border-slate-200 dark:border-neutral-800',
               'w-full',
             )}
           />
-        </div>
+        </m.div>
 
         <m.div
-          initial={{ opacity: 0.0001, y: 50 }}
+          initial={skipEntrance ? false : { opacity: 0.0001, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={softBouncePreset}
           className={clsx(
@@ -203,16 +226,16 @@ const Hero = () => {
   )
 }
 
-const ActivityScreen = () => {
+const ActivityScreen = ({ skipEntrance }: { skipEntrance: boolean }) => {
   return (
     <div className="mt-24">
       <TwoColumnLayout
         rightContainerClassName="block lg:flex [&>div]:w-full pr-4"
         leftContainerClassName="[&>div]:w-full"
       >
-        <ActivityPostList />
+        <ActivityPostList skipEntrance={skipEntrance} />
         <ErrorBoundary>
-          <ActivityRecent />
+          <ActivityRecent skipEntrance={skipEntrance} />
         </ErrorBoundary>
       </TwoColumnLayout>
     </div>
@@ -260,7 +283,7 @@ const windsock = [
   },
 ]
 
-const Windsock = () => {
+const Windsock = ({ skipEntrance }: { skipEntrance: boolean }) => {
   const likeQueryKey = ['site-like']
   const { data: count } = useQuery({
     queryKey: likeQueryKey,
@@ -280,19 +303,23 @@ const Windsock = () => {
           {windsock.map((item, index) => {
             return (
               <m.li
-                initial={{ opacity: 0.0001, y: 10 }}
+                initial={skipEntrance ? false : { opacity: 0.0001, y: 10 }}
                 viewport={{ once: true }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    stiffness: 641,
-                    damping: 23,
-                    mass: 3.9,
-                    type: 'spring',
-                    delay: index * 0.05,
-                  },
-                }}
+                whileInView={
+                  skipEntrance
+                    ? undefined
+                    : {
+                        opacity: 1,
+                        y: 0,
+                        transition: {
+                          stiffness: 641,
+                          damping: 23,
+                          mass: 3.9,
+                          type: 'spring',
+                          delay: index * 0.05,
+                        },
+                      }
+                }
                 transition={{
                   delay: 0.001,
                 }}
