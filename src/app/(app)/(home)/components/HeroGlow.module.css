@@ -18,7 +18,7 @@
 .ambient {
   inset: -12% -12% 0;
   background: radial-gradient(
-    ellipse 63% 57% at 50% 43%,
+    circle at 50% 43%,
     oklch(var(--a) / 0.07),
     transparent 77%
   );
@@ -26,18 +26,23 @@
 }
 
 .nearMotion {
-  top: -55%;
+  --glow-diameter: min(134rem, 136vw);
+  /* Keep the existing light center while changing its footprint to a circle. */
+  top: calc(-55% + min(65rem, 90vh) - var(--glow-diameter) / 2);
   left: -42%;
-  width: min(134rem, 136vw);
-  height: min(130rem, 180vh);
+  width: var(--glow-diameter);
+  height: var(--glow-diameter);
+  aspect-ratio: 1;
   will-change: transform;
 }
 
 .farMotion {
-  top: 45%;
+  --glow-diameter: min(70rem, 73vw);
+  top: calc(45% + min(30.5rem, 41vh) - var(--glow-diameter) / 2);
   right: -28%;
-  width: min(70rem, 73vw);
-  height: min(61rem, 82vh);
+  width: var(--glow-diameter);
+  height: var(--glow-diameter);
+  aspect-ratio: 1;
   will-change: transform;
 }
 
@@ -51,7 +56,7 @@
 
 .nearGlow {
   background: radial-gradient(
-    ellipse at center,
+    circle at center,
     oklch(var(--a) / 0.24) 0%,
     oklch(var(--a) / 0.13) 32%,
     transparent 73%
@@ -61,7 +66,7 @@
 
 .farGlow {
   background: radial-gradient(
-    ellipse at center,
+    circle at center,
     oklch(var(--a) / 0.16) 0%,
     oklch(var(--a) / 0.078) 35%,
     transparent 75%
@@ -115,17 +120,15 @@
   }
 
   .nearMotion {
-    top: -20%;
+    --glow-diameter: 168vw;
+    top: calc(28% - var(--glow-diameter) / 2);
     left: -61%;
-    width: 168vw;
-    height: 110rem;
   }
 
   .farMotion {
-    top: 61%;
+    --glow-diameter: 105vw;
+    top: calc(84% - var(--glow-diameter) / 2);
     right: -42%;
-    width: 105vw;
-    height: 38rem;
   }
 }
 

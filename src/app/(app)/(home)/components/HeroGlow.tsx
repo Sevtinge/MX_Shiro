@@ -2,7 +2,15 @@
 
 import { useEffect, useRef } from 'react'
 
-import { advanceGlowSpring, clampGlow } from '~/lib/hero-glow-physics'
+import {
+  addGlowScrollImpulse,
+  advanceGlowSpring,
+  clampGlow,
+  decayGlowScrollImpulse,
+  getGlowBreathing,
+  getGlowDrift,
+  getGlowMotionScale,
+} from '~/lib/hero-glow-physics'
 
 import styles from './HeroGlow.module.css'
 
@@ -18,11 +26,16 @@ export const HeroGlow = () => {
     if (!scene || !nearGlow || !farGlow) return
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
-    if (reducedMotion.matches) return
 
     let visible = false
     let frame = 0
     let lastFrame = 0
+    let motionSeconds = 0
+    let targetMotionScale = getGlowMotionScale(
+      window.innerWidth,
+      window.innerHeight,
+    )
+    let motionScale = targetMotionScale
     let lastScrollY = window.scrollY
     let pointerX = 0
     let pointerY = 0
@@ -43,22 +56,21 @@ export const HeroGlow = () => {
         : 1
       lastFrame = time
 
-      scrollImpulseY *= Math.pow(0.95, dt)
+      // Advance only while visible so tab switches don't jump the ambient phase.
+      motionSeconds += dt / 60
+      // Resize changes the amplitude gradually rather than teleporting the lights.
+      motionScale += (targetMotionScale - motionScale) * (1 - Math.pow(0.9, dt))
+      const drift = getGlowDrift(motionSeconds, motionScale)
+      const breathing = getGlowBreathing(motionSeconds, motionScale)
+      scrollImpulseY = decayGlowScrollImpulse(scrollImpulseY, dt)
       x = advanceGlowSpring(x, pointerX, dt)
       y = advanceGlowSpring(y, pointerY + scrollImpulseY, dt)
 
-      nearGlow.style.transform = `translate3d(${x.position.toFixed(2)}px, ${y.position.toFixed(2)}px, 0)`
-      farGlow.style.transform = `translate3d(${(-x.position * 0.65).toFixed(2)}px, ${(-y.position * 0.4).toFixed(2)}px, 0)`
+      nearGlow.style.transform = `translate3d(${(x.position + drift.near.x).toFixed(2)}px, ${(y.position + drift.near.y).toFixed(2)}px, 0) scale(${breathing.near.toFixed(4)})`
+      farGlow.style.transform = `translate3d(${(-x.position * 0.65 + drift.far.x).toFixed(2)}px, ${(-y.position * 0.52 + drift.far.y).toFixed(2)}px, 0) scale(${breathing.far.toFixed(4)})`
 
-      if (
-        Math.abs(x.position - pointerX) > 0.08 ||
-        Math.abs(y.position - pointerY) > 0.08 ||
-        Math.abs(x.velocity) > 0.08 ||
-        Math.abs(y.velocity) > 0.08 ||
-        Math.abs(scrollImpulseY) > 0.08
-      ) {
-        schedule()
-      }
+      // Ambient drift continues at rest, but schedule pauses offscreen/when hidden.
+      schedule()
     }
 
     const onPointerMove = (event: PointerEvent) => {
@@ -99,10 +111,18 @@ export const HeroGlow = () => {
       const { scrollY } = window
       const delta = scrollY - lastScrollY
       lastScrollY = scrollY
-      if (!visible) return
+      if (!visible || document.hidden || reducedMotion.matches) return
 
       // The light lags behind the surface before settling back into place.
-      scrollImpulseY = clampGlow(scrollImpulseY - delta * 0.85, -190, 190)
+      scrollImpulseY = addGlowScrollImpulse(scrollImpulseY, delta)
+      schedule()
+    }
+
+    const onResize = () => {
+      targetMotionScale = getGlowMotionScale(
+        window.innerWidth,
+        window.innerHeight,
+      )
       schedule()
     }
 
@@ -121,6 +141,11 @@ export const HeroGlow = () => {
       if (reducedMotion.matches) {
         cancelAnimationFrame(frame)
         frame = 0
+        lastFrame = 0
+        motionSeconds = 0
+        scrollImpulseY = 0
+        x = { position: 0, velocity: 0 }
+        y = { position: 0, velocity: 0 }
         nearGlow.style.transform = ''
         farGlow.style.transform = ''
       } else {
@@ -149,6 +174,7 @@ export const HeroGlow = () => {
     window.addEventListener('pointermove', onPointerMove, { passive: true })
     window.addEventListener('pointerout', onPointerOut)
     window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize, { passive: true })
     document.addEventListener('visibilitychange', onVisibilityChange)
     reducedMotion.addEventListener('change', onReducedMotionChange)
 
@@ -158,6 +184,7 @@ export const HeroGlow = () => {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerout', onPointerOut)
       window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
       document.removeEventListener('visibilitychange', onVisibilityChange)
       reducedMotion.removeEventListener('change', onReducedMotionChange)
     }
