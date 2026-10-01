@@ -10,6 +10,7 @@ import {
   getGlowBreathing,
   getGlowDrift,
   getGlowMotionScale,
+  getGlowScrollOffset,
 } from '~/lib/hero-glow-physics'
 
 import styles from './HeroGlow.module.css'
@@ -64,7 +65,8 @@ export const HeroGlow = () => {
       const breathing = getGlowBreathing(motionSeconds, motionScale)
       scrollImpulseY = decayGlowScrollImpulse(scrollImpulseY, dt)
       x = advanceGlowSpring(x, pointerX, dt)
-      y = advanceGlowSpring(y, pointerY + scrollImpulseY, dt)
+      const scrollOffsetY = getGlowScrollOffset(scrollImpulseY, motionScale)
+      y = advanceGlowSpring(y, pointerY + scrollOffsetY, dt)
 
       nearGlow.style.transform = `translate3d(${(x.position + drift.near.x).toFixed(2)}px, ${(y.position + drift.near.y).toFixed(2)}px, 0) scale(${breathing.near.toFixed(4)})`
       farGlow.style.transform = `translate3d(${(-x.position * 0.65 + drift.far.x).toFixed(2)}px, ${(-y.position * 0.52 + drift.far.y).toFixed(2)}px, 0) scale(${breathing.far.toFixed(4)})`
@@ -154,9 +156,14 @@ export const HeroGlow = () => {
       }
     }
 
+    const visibleElements = new Set<Element>()
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        visible = entry.isIntersecting
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visibleElements.add(entry.target)
+          else visibleElements.delete(entry.target)
+        }
+        visible = visibleElements.size > 0
         lastScrollY = window.scrollY
         if (visible) {
           schedule()
@@ -171,6 +178,10 @@ export const HeroGlow = () => {
     )
 
     observer.observe(scene)
+    // Unclipped light tails can remain visible after the hero leaves the viewport.
+    observer.observe(nearGlow)
+    observer.observe(farGlow)
+    if (scene.firstElementChild) observer.observe(scene.firstElementChild)
     window.addEventListener('pointermove', onPointerMove, { passive: true })
     window.addEventListener('pointerout', onPointerOut)
     window.addEventListener('scroll', onScroll, { passive: true })

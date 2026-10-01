@@ -9,6 +9,7 @@ import {
   getGlowBreathing,
   getGlowDrift,
   getGlowMotionScale,
+  getGlowScrollOffset,
 } from './hero-glow-physics.ts'
 
 test('spring stays at rest without movement', () => {
@@ -68,13 +69,13 @@ test('ambient drift starts smoothly and stays small over its full paths', () => 
   }
   for (let time = 0; time < 180; time += 0.1) {
     const drift = getGlowDrift(time)
-    assert.ok(Math.abs(drift.near.x) <= 82 * 1.15)
-    assert.ok(Math.abs(drift.near.y) <= 50 * 1.15)
-    assert.ok(Math.abs(drift.far.x) <= 65 * 1.15)
-    assert.ok(Math.abs(drift.far.y) <= 42 * 1.15)
+    assert.ok(Math.abs(drift.near.x) <= 82 * 1.15 * 1.32)
+    assert.ok(Math.abs(drift.near.y) <= 50 * 1.15 * 1.32)
+    assert.ok(Math.abs(drift.far.x) <= 65 * 1.15 * 1.32)
+    assert.ok(Math.abs(drift.far.y) <= 42 * 1.15 * 1.32)
     const next = getGlowDrift(time + 1 / 60)
-    assert.ok(Math.abs(next.near.x - drift.near.x) < 0.65)
-    assert.ok(Math.abs(next.far.y - drift.far.y) < 0.34)
+    assert.ok(Math.abs(next.near.x - drift.near.x) < 0.85)
+    assert.ok(Math.abs(next.far.y - drift.far.y) < 0.45)
   }
   const moving = getGlowDrift(6)
   assert.notEqual(moving.near.x, moving.far.x)
@@ -164,7 +165,7 @@ test('both drift and breathing grow with the viewport, not with page length', ()
   }
 })
 
-test('travel and breathing excursions are exactly 15 percent larger', () => {
+test('drift increases another 32 percent without changing breathing amplitude', () => {
   const time = 4
   const factor = getGlowMotionScale(1920, 1080)
   const drift = getGlowDrift(time, factor)
@@ -174,7 +175,7 @@ test('travel and breathing excursions are exactly 15 percent larger', () => {
     factor
   const previousNearScale = Math.sin(time * 1.15 * 0.42) * 0.06 * factor
   const previousFarScale = Math.sin(time * 1.15 * 0.35) * 0.08 * factor
-  assert.ok(Math.abs(drift.near.x / previousX - 1.15) < 1e-10)
+  assert.ok(Math.abs(drift.near.x / (previousX * 1.15) - 1.32) < 1e-10)
   assert.ok(Math.abs((breathing.near - 1) / previousNearScale - 1.15) < 1e-10)
   assert.ok(Math.abs((breathing.far - 1) / previousFarScale - 1.15) < 1e-10)
 })
@@ -185,7 +186,7 @@ test('drift runs 25 percent faster and breathing 15 percent faster without chang
     const breathingTime = seconds * 1.15
     const drift = getGlowDrift(seconds)
     const breathing = getGlowBreathing(seconds)
-    const expectedDriftY = Math.sin(driftTime * 0.24) * 50 * 1.15
+    const expectedDriftY = Math.sin(driftTime * 0.24) * 50 * 1.15 * 1.32
     const expectedNearBreathing =
       1 + Math.sin(breathingTime * 0.42) * 0.06 * 1.15
     const expectedFarBreathing =
@@ -194,4 +195,23 @@ test('drift runs 25 percent faster and breathing 15 percent faster without chang
     assert.ok(Math.abs(breathing.near - expectedNearBreathing) < 1e-10)
     assert.ok(Math.abs(breathing.far - expectedFarBreathing) < 1e-10)
   }
+})
+
+test('scroll inertia has larger travel on desktops and smaller travel on phones', () => {
+  const impulse = addGlowScrollImpulse(0, 100)
+  const phoneScale = getGlowMotionScale(390, 844)
+  const desktopScale = getGlowMotionScale(1920, 1080)
+  const phoneOffset = getGlowScrollOffset(impulse, phoneScale)
+  const desktopOffset = getGlowScrollOffset(impulse, desktopScale)
+  assert.equal(getGlowScrollOffset(impulse), impulse)
+  assert.equal(desktopOffset, -202.5)
+  assert.ok(Math.abs(phoneOffset) < Math.abs(impulse))
+  assert.ok(Math.abs(desktopOffset) > Math.abs(impulse))
+  assert.ok(phoneOffset < 0 && desktopOffset < 0)
+  const decayed = decayGlowScrollImpulse(impulse, 1)
+  assert.ok(
+    Math.abs(getGlowScrollOffset(decayed, desktopScale)) <
+      Math.abs(desktopOffset),
+  )
+  assert.equal(getGlowScrollOffset(0, desktopScale), 0)
 })

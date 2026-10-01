@@ -105,7 +105,7 @@ const Hero = () => {
       return acc + (cur.text?.length || 0)
     }, 0) * 50
   return (
-    <div className="relative isolate -mx-4 -mt-[4.5rem] min-w-0 max-w-screen overflow-visible px-4 pt-[9.5rem] md:mx-0 md:mt-20 md:overflow-hidden md:px-0 md:pt-0 lg:mt-[-4.5rem] lg:h-dvh lg:min-h-[800px]">
+    <div className="relative isolate -mx-4 -mt-[4.5rem] min-w-0 max-w-screen overflow-visible px-4 pt-[9.5rem] md:mx-0 md:mt-20 md:px-0 md:pt-0 lg:mt-[-4.5rem] lg:h-dvh lg:min-h-[800px]">
       <HeroGlow />
       <TwoColumnLayout
         className="z-[1]"

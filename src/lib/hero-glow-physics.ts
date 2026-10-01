@@ -33,13 +33,14 @@ export const getGlowMotionScale = (width: number, height: number) =>
   )
 
 const AMBIENT_MOTION_GAIN = 1.15
+const AMBIENT_DRIFT_GAIN = 1.32
 const AMBIENT_DRIFT_SPEED = 1.25
 const AMBIENT_BREATHING_SPEED = 1.15
 
 /** Independent slow paths keep the two lights alive without moving in lockstep. */
 export const getGlowDrift = (seconds: number, motionScale = 1) => {
   const time = seconds * AMBIENT_DRIFT_SPEED
-  const amplitude = motionScale * AMBIENT_MOTION_GAIN
+  const amplitude = motionScale * AMBIENT_MOTION_GAIN * AMBIENT_DRIFT_GAIN
   return {
     near: {
       x: (Math.sin(time * 0.28) * 70 + Math.sin(time * 0.43) * 12) * amplitude,
@@ -60,6 +61,10 @@ export const decayGlowScrollImpulse = (
   impulse: number,
   elapsedFrames: number,
 ) => impulse * Math.pow(0.97, clampGlow(elapsedFrames, 0, 2))
+
+/** Keep the impulse normalized so the same scroll scales smoothly on resize. */
+export const getGlowScrollOffset = (impulse: number, motionScale = 1) =>
+  impulse * motionScale
 
 /** Gentle breathing uses separate rhythms and starts at the original size. */
 export const getGlowBreathing = (seconds: number, motionScale = 1) => {

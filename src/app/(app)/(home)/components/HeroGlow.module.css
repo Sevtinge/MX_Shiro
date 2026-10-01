@@ -2,10 +2,11 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
+  /* The circles fade on their own; don't cut their tails at the hero boundary. */
+  overflow-x: clip;
+  overflow-y: visible;
   pointer-events: none;
   isolation: isolate;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
 }
 
 .ambient,
@@ -16,11 +17,16 @@
 }
 
 .ambient {
-  inset: -12% -12% 0;
+  --glow-diameter: min(150rem, max(150vw, 125vh));
+  top: calc(43% - var(--glow-diameter) / 2);
+  left: calc(50% - var(--glow-diameter) / 2);
+  width: var(--glow-diameter);
+  height: var(--glow-diameter);
+  border-radius: 50%;
   background: radial-gradient(
-    circle at 50% 43%,
+    circle closest-side at center,
     oklch(var(--a) / 0.07),
-    transparent 77%
+    transparent 100%
   );
   animation: ambient-arrive 2.1s ease-out both;
 }
@@ -56,20 +62,20 @@
 
 .nearGlow {
   background: radial-gradient(
-    circle at center,
+    circle closest-side at center,
     oklch(var(--a) / 0.24) 0%,
-    oklch(var(--a) / 0.13) 32%,
-    transparent 73%
+    oklch(var(--a) / 0.13) 45%,
+    transparent 100%
   );
   animation: halo-arrive 2.25s cubic-bezier(0.2, 0.8, 0.25, 1) both;
 }
 
 .farGlow {
   background: radial-gradient(
-    circle at center,
+    circle closest-side at center,
     oklch(var(--a) / 0.16) 0%,
-    oklch(var(--a) / 0.078) 35%,
-    transparent 75%
+    oklch(var(--a) / 0.078) 50%,
+    transparent 100%
   );
   animation: halo-arrive 2.45s 0.3s cubic-bezier(0.2, 0.8, 0.25, 1) both;
 }
@@ -107,16 +113,9 @@
 
 @media (max-width: 767px) {
   .scene {
-    /* Let the light fade beyond the hero instead of clipping at its edge. */
+    /* Preserve the portrait light placement, without an upper/lower mask. */
     bottom: auto;
     height: calc(100% + 12rem);
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      #000 15%,
-      #000 52%,
-      transparent 100%
-    );
   }
 
   .nearMotion {
