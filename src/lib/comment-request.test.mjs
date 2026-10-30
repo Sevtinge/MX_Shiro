@@ -5,7 +5,7 @@ import createClient from '@mx-space/api-client'
 
 import { submitComment } from './comment-request.ts'
 
-const apiUrl = 'https://api-www.example.com/api/v2'
+const apiUrl = 'https://api-blog.example.com/api/v2'
 const refId = '6ab930f7e99146725880ebb3'
 const text = '评论接口回归测试'
 
