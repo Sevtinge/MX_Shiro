@@ -11,7 +11,7 @@ import { getQueryClient } from '~/lib/query-client.server'
 import { queries } from '~/queries/definition'
 
 import type { FooterConfig } from './config'
-import { defaultLinkSections } from './config'
+import { defaultLinkSections, withDonationLink } from './config'
 // import { footerConfig } from './config'
 import { GatewayInfo } from './GatewayInfo'
 import { OwnerName } from './OwnerName'
@@ -45,10 +45,15 @@ const FooterLinkSection = async () => {
   const footerConfig: FooterConfig = footer || {
     linkSections: defaultLinkSections,
   }
+  const linkSections = withDonationLink(
+    footerConfig.linkSections?.length
+      ? footerConfig.linkSections
+      : defaultLinkSections,
+  )
 
   return (
     <div className="space-x-0 space-y-3 md:space-x-6 md:space-y-0">
-      {footerConfig.linkSections.map((section) => {
+      {linkSections.map((section) => {
         return (
           <div
             className="flex items-center gap-4 md:inline-flex"

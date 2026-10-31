@@ -341,7 +341,7 @@ const Windsock = () => {
         </ul>
       </div>
 
-      <div className="mt-24 flex justify-center gap-4">
+      <div className="mt-24 flex flex-wrap justify-center gap-4">
         <StyledButton
           className="center flex gap-2 bg-red-400"
           onClick={() => {
@@ -389,6 +389,11 @@ const Windsock = () => {
         >
           订阅
           <i className="i-material-symbols-notifications-active" />
+        </StyledButton>
+
+        <StyledButton className="center flex gap-2" href="/donation">
+          捐赠
+          <i className="i-mingcute-gift-fill" />
         </StyledButton>
       </div>
     </>
