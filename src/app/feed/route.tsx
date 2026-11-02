@@ -5,6 +5,7 @@ import RSS from 'rss'
 import xss from 'xss'
 
 import { CDN_HOST } from '~/app.static.config'
+import { thinkingEnabled } from '~/constants/features'
 import { ContainerRule as __ContainerRule } from '~/components/ui/markdown/parsers/container'
 import { InsertRule } from '~/components/ui/markdown/parsers/ins'
 import { MentionRule } from '~/components/ui/markdown/parsers/mention'
@@ -85,7 +86,11 @@ export async function GET() {
     custom_elements,
   })
 
-  data.forEach((item) => {
+  const feedItems = thinkingEnabled
+    ? data
+    : data.filter((item) => !item.link?.includes('/thinking'))
+
+  feedItems.forEach((item) => {
     const render = () => {
       try {
         return ReactDOM.renderToString(

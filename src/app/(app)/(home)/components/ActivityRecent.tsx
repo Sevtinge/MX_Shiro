@@ -1,11 +1,13 @@
 'use client'
 
+import { CollectionRefTypes } from '@mx-space/api-client'
 import { useQuery } from '@tanstack/react-query'
 import clsx from 'clsx'
 import { m } from 'motion/react'
 import { useMemo } from 'react'
 
 import { ScrollArea } from '~/components/ui/scroll-area'
+import { thinkingEnabled } from '~/constants/features'
 import { softBouncePreset } from '~/constants/spring'
 import { filterDeletedCommentActivities } from '~/lib/activity-visibility'
 import { apiClient } from '~/lib/request'
@@ -40,6 +42,17 @@ export const ActivityRecent = () => {
       })
       .sort((a, b) => {
         return new Date(b.created).getTime() - new Date(a.created).getTime()
+      })
+      .filter((activity) => {
+        if (thinkingEnabled) return true
+        if (activity.bizType === 'recent') return false
+        if (
+          activity.bizType === 'comment' &&
+          activity.type === CollectionRefTypes.Recently
+        ) {
+          return false
+        }
+        return true
       }) as ReactActivityType[]
     // .slice(0, 6) as ReactActivityType[]
   }, [data])

@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 
 import { fetchAggregationData } from '~/app/(app)/api'
 import { IonIosArrowDown } from '~/components/icons/arrow'
+import { thinkingEnabled } from '~/constants/features'
 import { SubscribeTextButton } from '~/components/modules/subscribe/SubscribeTextButton'
 import { FloatPopover } from '~/components/ui/float-popover'
 import { MarkdownLink } from '~/components/ui/link'
@@ -50,6 +51,16 @@ const FooterLinkSection = async () => {
       ? footerConfig.linkSections
       : defaultLinkSections,
   )
+    .map((section) => ({
+      ...section,
+      links: thinkingEnabled
+        ? section.links
+        : section.links.filter(
+            (link) =>
+              link.name !== '思考' && !link.href?.includes('/thinking'),
+          ),
+    }))
+    .filter((section) => section.links.length > 0)
 
   return (
     <div className="space-x-0 space-y-3 md:space-x-6 md:space-y-0">

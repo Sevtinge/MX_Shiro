@@ -7,6 +7,7 @@ import { useEffect, useReducer } from 'react'
 
 import { StyledButton } from '~/components/ui/button'
 import { Input } from '~/components/ui/input/Input'
+import { thinkingEnabled } from '~/constants/features'
 import { useStateToRef } from '~/hooks/common/use-state-ref'
 import { preventDefault } from '~/lib/dom'
 import { apiClient } from '~/lib/request'
@@ -126,6 +127,7 @@ export const SubscribeModal: FC<SubscribeModalProps> = ({
       />
       <div className="mb-2 flex gap-10">
         {Object.keys(state.types)
+          .filter((type) => thinkingEnabled || type !== 'recently_c')
           .filter((type) => query.data?.allowTypes.includes(type as any))
           .map((name) => (
             <fieldset

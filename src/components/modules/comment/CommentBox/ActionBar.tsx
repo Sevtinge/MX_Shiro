@@ -6,6 +6,7 @@ import { AnimatePresence, m } from 'motion/react'
 
 import { useIsLogged } from '~/atoms/hooks'
 import { TiltedSendIcon } from '~/components/icons/TiltedSendIcon'
+import { thinkingEnabled } from '~/constants/features'
 import { MLink } from '~/components/ui/link/MLink'
 import { clsxm } from '~/lib/helper'
 
@@ -119,7 +120,7 @@ export const CommentBoxActionBar: Component = ({ className }) => {
             <TextLengthIndicator />
 
             <WhisperCheckbox />
-            <SyncToRecentlyCheckbox />
+            {thinkingEnabled && <SyncToRecentlyCheckbox />}
             <SubmitButton />
           </m.aside>
         )}

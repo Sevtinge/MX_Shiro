@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import removeMarkdown from 'remove-markdown'
 
+import { thinkingEnabled } from '~/constants/features'
 import { apiClient } from '~/lib/request'
 
 export const dynamic = 'force-dynamic'
@@ -53,7 +54,9 @@ const getSiteStats = async (): Promise<Stats> => {
       apiClient.aggregate.getStat(),
       countPublications((page) => apiClient.post.getList(page, PAGE_SIZE)),
       countPublications((page) => apiClient.note.getList(page, PAGE_SIZE)),
-      apiClient.shorthand.getAll(),
+      thinkingEnabled
+        ? apiClient.shorthand.getAll()
+        : Promise.resolve({ data: [] }),
       apiClient.proxy.aggregate.count_site_words.get<{
         data: { length: number }
       }>(),
@@ -72,22 +75,29 @@ const getSiteStats = async (): Promise<Stats> => {
   // contribute zero characters to the total.
   const postCharacters = posts?.characters ?? (stat?.posts === 0 ? 0 : null)
   const noteCharacters = notes?.characters ?? (stat?.notes === 0 ? 0 : null)
-  const thoughtCharacters = thoughts
-    ? thoughts.reduce(
-        (sum, thought) => sum + countCharacters(thought.content),
-        0,
-      )
-    : stat?.recently === 0
-      ? 0
-      : null
+  const thoughtCharacters = !thinkingEnabled
+    ? 0
+    : thoughts
+      ? thoughts.reduce(
+          (sum, thought) => sum + countCharacters(thought.content),
+          0,
+        )
+      : stat?.recently === 0
+        ? 0
+        : null
   const exactCharacters =
     postCharacters !== null &&
     noteCharacters !== null &&
     thoughtCharacters !== null
       ? postCharacters + noteCharacters + thoughtCharacters
       : null
+  // Backend word totals include 思考. Only use them when that content is
+  // shown, or when the site has no thoughts to leak into the number.
   const fallbackCharacters =
-    wordResult.status === 'fulfilled' ? wordResult.value.data?.length : null
+    wordResult.status === 'fulfilled' &&
+    (thinkingEnabled || stat?.recently === 0)
+      ? wordResult.value.data?.length
+      : null
 
   if (!stat && !posts && !notes && !thoughts && fallbackCharacters == null) {
     throw new Error('All site statistics sources are unavailable')
@@ -105,7 +115,9 @@ const getSiteStats = async (): Promise<Stats> => {
   return {
     posts: stat?.posts ?? posts?.count ?? null,
     notes: stat?.notes ?? notes?.count ?? null,
-    thoughts: stat?.recently ?? thoughts?.length ?? null,
+    thoughts: thinkingEnabled
+      ? (stat?.recently ?? thoughts?.length ?? null)
+      : null,
     characters: exactCharacters ?? fallbackCharacters ?? null,
     approximateCharacters: exactCharacters === null,
   }

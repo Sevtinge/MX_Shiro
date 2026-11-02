@@ -15,6 +15,10 @@ const accentColorLight = [
   '#26A69A',
   '#fb7287',
   '#69a6cc',
+  '#D2A86A', // 金黄
+  '#F0B060', // 橘黄
+  '#9A7AD4', // 淡紫
+  '#C2D67A', // 淡黄绿
 ]
 const accentColorDark = [
   // 桃
@@ -24,11 +28,18 @@ const accentColorDark = [
   '#ff7b7b',
   '#99D8CF',
   '#838BC6',
+  '#E4C08A', // 金黄
+  '#FFC98A', // 橘黄
+  '#D4C2F5', // 淡紫
+  '#E3F0A0', // 淡黄绿
 ]
 const defaultAccentColor = { light: accentColorLight, dark: accentColorDark }
 
 const lightBg = 'rgb(250, 250, 250)'
 const darkBg = 'rgb(0, 2, 18)'
+const lightPurpleDark = '#D4C2F5'
+const darkBackgroundMix = (hex: string) =>
+  hex.toLowerCase() === lightPurpleDark.toLowerCase() ? 0.12 : 0.05
 export async function AccentColorStyleInjector({
   color,
 }: {
@@ -79,7 +90,7 @@ export async function AccentColorStyleInjector({
           background-color: var(--root-bg) !important;
         }
         html[data-theme='dark'] {
-          --root-bg: ${chroma.mix(darkBg, currentAccentColorDRef, 0.12, 'rgb').hex()};
+          --root-bg: ${chroma.mix(darkBg, currentAccentColorDRef, darkBackgroundMix(currentAccentColorDRef), 'rgb').hex()};
         }
         `,
       }}

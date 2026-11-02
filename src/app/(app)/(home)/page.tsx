@@ -25,6 +25,7 @@ import {
   BottomToUpTransitionView,
   TextUpTransitionView,
 } from '~/components/ui/transition'
+import { thinkingEnabled } from '~/constants/features'
 import { microReboundPreset, softBouncePreset } from '~/constants/spring'
 import { clsxm } from '~/lib/helper'
 import { noopObj } from '~/lib/noop'
@@ -261,11 +262,15 @@ const windsock = [
     icon: FaSolidUserFriends,
     path: '/friends',
   },
-  {
-    title: '写下一点思考',
-    icon: MdiLightbulbOn20,
-    path: '/thinking',
-  },
+  ...(thinkingEnabled
+    ? [
+        {
+          title: '写下一点思考',
+          icon: MdiLightbulbOn20,
+          path: '/thinking',
+        },
+      ]
+    : []),
   {
     title: '看看我做些啥',
     icon: MdiFlask,

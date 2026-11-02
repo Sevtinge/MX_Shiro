@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 
+import { thinkingEnabled } from '~/constants/features'
 import {
   useAggregationSelector,
   useAppConfigSelector,
@@ -32,7 +33,7 @@ export const SiteStats = () => {
     isPending,
     isError,
   } = useQuery<Stats>({
-    queryKey: ['public-site-stats', 'v2'],
+    queryKey: ['public-site-stats', 'v3'],
     queryFn: async () => {
       const response = await fetch('/api/site-stats')
       if (!response.ok) throw new Error('Failed to load site statistics')
@@ -63,8 +64,12 @@ export const SiteStats = () => {
         stats?.characters == null))
 
   const total =
-    stats?.posts != null && stats.notes != null && stats.thoughts != null
-      ? stats.posts + stats.notes + stats.thoughts
+    stats?.posts != null &&
+    stats.notes != null &&
+    (!thinkingEnabled || stats.thoughts != null)
+      ? stats.posts +
+        stats.notes +
+        (thinkingEnabled ? (stats.thoughts ?? 0) : 0)
       : null
 
   return (
@@ -74,7 +79,9 @@ export const SiteStats = () => {
     >
       <span>文稿 {formatCount(stats?.posts)} 篇</span>
       <span>手记 {formatCount(stats?.notes)} 篇</span>
-      <span>思考 {formatCount(stats?.thoughts)} 篇</span>
+      {thinkingEnabled && (
+        <span>思考 {formatCount(stats?.thoughts)} 篇</span>
+      )}
       <span>
         共 {formatCount(total)} 篇 ·{' '}
         {stats?.characters == null

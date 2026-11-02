@@ -21,6 +21,7 @@ import {
 } from '~/components/icons/menu-collection'
 import { sayQueryKey } from '~/components/modules/say/hooks'
 import { DOMCustomEvents } from '~/constants/event'
+import { thinkingEnabled } from '~/constants/features'
 import { TrackerAction } from '~/constants/tracker'
 import { hideDeletedComment } from '~/lib/comment-visibility'
 import { isDev } from '~/lib/env'
@@ -212,6 +213,7 @@ export const eventHandler = (
     }
 
     case EventTypes.RECENTLY_CREATE: {
+      if (!thinkingEnabled) break
       queryClient.invalidateQueries({ queryKey: ['home-activity-recent'] })
       trackerRealtimeEvent()
       if (location.pathname === routeBuilder(Routes.Thinking, {})) {

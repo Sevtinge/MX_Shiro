@@ -14,6 +14,7 @@ import {
   MdiFlask,
   MdiLightbulbOn20,
 } from '~/components/icons/menu-collection'
+import { thinkingEnabled } from '~/constants/features'
 
 export interface IHeaderMenu {
   title: string
@@ -86,11 +87,15 @@ export const headerMenuConfig: IHeaderMenu[] = [
     icon: h(FaSolidCircleNotch),
     path: '#',
     subMenu: [
-      {
-        title: '思考',
-        icon: h(MdiLightbulbOn20),
-        path: '/thinking',
-      },
+      ...(thinkingEnabled
+        ? [
+            {
+              title: '思考',
+              icon: h(MdiLightbulbOn20),
+              path: '/thinking',
+            },
+          ]
+        : []),
       {
         title: '项目',
         icon: h(MdiFlask),

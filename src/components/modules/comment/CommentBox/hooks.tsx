@@ -17,6 +17,7 @@ import { useCallback, useContext } from 'react'
 import { useIsLogged } from '~/atoms/hooks'
 import { useSessionReader } from '~/atoms/hooks/reader'
 import { submitComment } from '~/lib/comment-request'
+import { thinkingEnabled } from '~/constants/features'
 import { apiClient } from '~/lib/request'
 import { getErrorMessageFromRequestError } from '~/lib/request.shared'
 import { jotaiStore } from '~/lib/store'
@@ -150,7 +151,12 @@ export const useSendComment = () => {
         url: jotaiStore.get(urlAtom),
       })
 
-      if (!isReply && isLogged && jotaiStore.get(syncToRecentlyAtom)) {
+      if (
+        thinkingEnabled &&
+        !isReply &&
+        isLogged &&
+        jotaiStore.get(syncToRecentlyAtom)
+      ) {
         void apiClient.recently.proxy
           .post({
             data: {
