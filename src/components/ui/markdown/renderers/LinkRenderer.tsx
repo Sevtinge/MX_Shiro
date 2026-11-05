@@ -276,7 +276,13 @@ const GithubUrlRenderL: FC<{
   switch (true) {
     case isGithubRepoUrl(url): {
       const { owner, repo } = parseGithubTypedUrl(url)
-      return <LinkCard id={`${owner}/${repo}`} source={LinkCardSource.GHRepo} />
+      return (
+        <LinkCard
+          id={`${owner}/${repo}`}
+          source={LinkCardSource.GHRepo}
+          fallbackUrl={url.toString()}
+        />
+      )
     }
     case isGistUrl(url): {
       const { owner, id } = parseGithubGistUrl(url)

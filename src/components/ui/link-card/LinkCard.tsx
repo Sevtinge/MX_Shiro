@@ -26,6 +26,93 @@ import { useFeatureEnabled } from '~/providers/root/app-feature-provider'
 import { LinkCardSource } from './enums'
 import styles from './LinkCard.module.css'
 
+const normalizeNavigableHref = (url?: string | null) => {
+  if (!url) return
+  const trimmed = url.trim()
+  if (!trimmed || trimmed.toLowerCase().startsWith('javascript:')) return
+  return trimmed
+}
+
+const buildLinkCardFallbackUrl = (
+  source: LinkCardSource | string,
+  id: string,
+) => {
+  switch (source) {
+    case LinkCardSource.GHRepo: {
+      const [owner, repo] = id.split('/')
+      if (owner && repo) return `https://github.com/${owner}/${repo}`
+      return
+    }
+    case LinkCardSource.GHPr: {
+      const [owner, repo, pr] = id.split('/')
+      if (owner && repo && pr)
+        return `https://github.com/${owner}/${repo}/pull/${pr}`
+      return
+    }
+    case LinkCardSource.GHCommit: {
+      const [owner, repo, , commitId] = id.split('/')
+      if (owner && repo && commitId)
+        return `https://github.com/${owner}/${repo}/commit/${commitId}`
+      return
+    }
+    case LinkCardSource.Self:
+    case LinkCardSource.MixSpace: {
+      if (id.startsWith('posts/') || id.startsWith('notes/')) return `/${id}`
+      return
+    }
+    case LinkCardSource.LEETCODE: {
+      if (id) return `https://leetcode.cn/problems/${id}/description`
+      return
+    }
+    case LinkCardSource.Bangumi: {
+      const [type, realId] = id.split('/')
+      if (type && realId) return `https://bgm.tv/${type}/${realId}`
+      return
+    }
+    case LinkCardSource.TMDB: {
+      const [type, realId] = id.split('/')
+      if (type && realId) return `https://www.themoviedb.org/${type}/${realId}`
+      return
+    }
+    case LinkCardSource.Arxiv: {
+      if (id) return `https://arxiv.org/abs/${id.replace(/^abs\//, '')}`
+      return
+    }
+    case LinkCardSource.QQMusicSong: {
+      if (id) return `https://y.qq.com/n/ryqq/songDetail/${id}`
+      return
+    }
+    case LinkCardSource.NeteaseMusicSong: {
+      if (id) return `https://music.163.com/song?id=${id}`
+      return
+    }
+    default:
+      return
+  }
+}
+
+const toLinkHref = (source: string, url?: string) => {
+  if (!url) return
+  if (
+    (source === LinkCardSource.Self || source === LinkCardSource.MixSpace) &&
+    !url.startsWith('/')
+  ) {
+    try {
+      const parsed = new URL(url, window.location.origin)
+      if (
+        parsed.origin === window.location.origin &&
+        (parsed.pathname.startsWith('/posts/') ||
+          parsed.pathname.startsWith('/notes/'))
+      ) {
+        return `${parsed.pathname}${parsed.search}${parsed.hash}`
+      }
+    } catch {
+      return url
+    }
+  }
+  return url
+}
+
 export interface LinkCardProps {
   id: string
   source?: LinkCardSource
@@ -68,22 +155,42 @@ type CardState = {
 const LinkCardImpl: FC<LinkCardProps> = (props) => {
   const { id, source = LinkCardSource.Self, className, fallbackUrl } = props
 
+  const resolvedFallbackUrl = useMemo(
+    () =>
+      normalizeNavigableHref(fallbackUrl) ??
+      buildLinkCardFallbackUrl(source, id),
+    [fallbackUrl, source, id],
+  )
+
   const [loading, setLoading] = useState(true)
   const [isError, setIsError] = useState(false)
-  const [fullUrl, setFullUrl] = useState(fallbackUrl || 'javascript:;')
+  const [fullUrl, setFullUrl] = useState<string | undefined>(
+    resolvedFallbackUrl,
+  )
+
+  const assignFullUrl = useCallback((url?: string | null) => {
+    const nextUrl = normalizeNavigableHref(url)
+    if (nextUrl) setFullUrl(nextUrl)
+  }, [])
 
   const [cardInfo, setCardInfo] = useState<CardState>()
 
   const peek = usePeek()
   const isCommandPressed = useIsCommandOrControlPressed()
 
+  const href = toLinkHref(source, fullUrl || resolvedFallbackUrl)
+
   const handleCanPeek = useCallback(
-    async (e: SyntheticEvent<any>) => {
-      if (isCommandPressed) return
-      const success = peek(fullUrl)
+    (e: SyntheticEvent<any>) => {
+      if (!href) {
+        preventDefault(e)
+        return
+      }
+      if (isError || isCommandPressed) return
+      const success = peek(href)
       if (success) preventDefault(e)
     },
-    [fullUrl, isCommandPressed, peek],
+    [href, isError, isCommandPressed, peek],
   )
 
   const tmdbEnabled = useFeatureEnabled('tmdb')
@@ -125,12 +232,13 @@ const LinkCardImpl: FC<LinkCardProps> = (props) => {
     }
     setLoading(true)
 
-    await fetchFn(id, setCardInfo, setFullUrl).catch((err) => {
+    await fetchFn(id, setCardInfo, assignFullUrl).catch((err) => {
       console.error('fetch card info error:', err)
       setIsError(true)
+      if (resolvedFallbackUrl) setFullUrl(resolvedFallbackUrl)
     })
     setLoading(false)
-  }, [fetchFn, id])
+  }, [assignFullUrl, fetchFn, id, resolvedFallbackUrl])
 
   const { ref } = useInView({
     triggerOnce: true,
@@ -162,43 +270,21 @@ const LinkCardImpl: FC<LinkCardProps> = (props) => {
     return null
   }
 
-  const LinkComponent = source === 'self' ? Link : 'a'
-
   const classNames = cardInfo?.classNames || {}
-
-  if (loading) {
-    return (
-      <a
-        ref={ref}
-        href={fullUrl}
-        target={source !== 'self' ? '_blank' : '_self'}
-        rel="noreferrer"
-      >
-        {props.placeholder}
-      </a>
-    )
+  const cardClassName = clsxm(
+    styles['card-grid'],
+    (loading || isError) && styles['skeleton'],
+    isError && styles['error'],
+    'not-prose',
+    'group',
+    className,
+    classNames.cardRoot,
+  )
+  const cardStyle = {
+    borderColor: cardInfo?.color ? `${cardInfo.color}30` : undefined,
   }
-  return (
-    <LinkComponent
-      href={fullUrl}
-      target={source !== 'self' ? '_blank' : '_self'}
-      className={clsxm(
-        styles['card-grid'],
-        (loading || isError) && styles['skeleton'],
-        isError && styles['error'],
-        'not-prose',
-
-        'group',
-
-        className,
-        classNames.cardRoot,
-      )}
-      style={{
-        borderColor: cardInfo?.color ? `${cardInfo.color}30` : undefined,
-      }}
-      onClick={handleCanPeek}
-      onMouseMove={handleMouseMove}
-    >
+  const cardBody = (
+    <>
       {cardInfo?.color && (
         <>
           <div
@@ -235,6 +321,51 @@ const LinkCardImpl: FC<LinkCardProps> = (props) => {
           }}
         />
       )}
+    </>
+  )
+
+  if (loading) {
+    if (!href) {
+      return <span ref={ref}>{props.placeholder}</span>
+    }
+    return (
+      <a
+        ref={ref}
+        href={href}
+        target={source !== 'self' ? '_blank' : '_self'}
+        rel="noreferrer"
+      >
+        {props.placeholder}
+      </a>
+    )
+  }
+
+  if (!href) {
+    return (
+      <div
+        className={cardClassName}
+        style={cardStyle}
+        onMouseMove={handleMouseMove}
+      >
+        {cardBody}
+      </div>
+    )
+  }
+
+  const LinkComponent = source === 'self' ? Link : 'a'
+
+  return (
+    <LinkComponent
+      href={href}
+      target={source !== 'self' ? '_blank' : '_self'}
+      rel="noreferrer"
+      title={isError ? href : undefined}
+      className={cardClassName}
+      style={cardStyle}
+      onClick={handleCanPeek}
+      onMouseMove={handleMouseMove}
+    >
+      {cardBody}
     </LinkComponent>
   )
 }
