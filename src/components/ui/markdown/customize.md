@@ -493,4 +493,4 @@ Next
 :::
 ````
 
-`layout` 可以是 `links`、`devices`、`skills`、`goals`。设备写成 `- laptop | 笔记本 | 说明`。正文以 `::: about` 开头时，页面会按名片渲染。
+`layout` 可以是 `links`、`devices`、`skills`、`goals`。设备写成 `- laptop | 笔记本 | 说明`，说明也可以是链接：`- phone | 手机 | [iPhone 16 Pro Max](https://support.apple.com/121032)`。正文以 `::: about` 开头时，页面会按名片渲染。

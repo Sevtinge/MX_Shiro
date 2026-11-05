@@ -4,7 +4,12 @@ export type AboutQuote = { text: string; cite?: string }
 
 export type AboutLink = { label: string; detail?: string; href?: string }
 
-export type AboutDevice = { icon?: string; label: string; detail?: string }
+export type AboutDevice = {
+  icon?: string
+  label: string
+  detail?: string
+  href?: string
+}
 
 export type AboutSkill = { name: string; value: number }
 

@@ -124,6 +124,13 @@ const isSkillItem = (item: Item) => {
   return item.parts.length >= 2 && percent(raw) !== null && !item.href
 }
 
+const markdownLink = (value: string) => {
+  const match = /^\[([^\]]+)\]\((.+)\)$/.exec(value.trim())
+  if (!match) return { text: value.trim() }
+  const href = safeUrl(match[2].trim())
+  return href ? { text: match[1].trim(), href } : { text: match[1].trim() }
+}
+
 const isDeviceItem = (item: Item) =>
   !item.href && item.parts.length >= 3 && item.details.length === 0
 
@@ -284,16 +291,22 @@ const buildSection = (
         : [],
     devices:
       layout === 'devices'
-        ? items.map(
-            (item): AboutDevice => ({
+        ? items.map((item): AboutDevice => {
+            const label = markdownLink(
+              item.parts.length >= 3 ? item.parts[1] : item.label,
+            )
+            const detail = markdownLink(
+              item.parts.length >= 3
+                ? item.parts.slice(2).join(' | ')
+                : item.details[0] || item.parts[1] || '',
+            )
+            return {
               icon: item.parts.length >= 3 ? item.parts[0] : attrs.icon,
-              label: item.parts.length >= 3 ? item.parts[1] : item.label,
-              detail:
-                item.parts.length >= 3
-                  ? item.parts.slice(2).join(' | ')
-                  : item.details[0] || item.parts[1],
-            }),
-          )
+              label: label.text,
+              detail: detail.text || undefined,
+              href: detail.href || label.href,
+            }
+          })
         : [],
     groups: skillGroups.filter(
       (group) => group.skills.length > 0 || group.title,

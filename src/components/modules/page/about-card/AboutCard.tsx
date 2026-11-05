@@ -97,8 +97,8 @@ function LinkItem({ item }: { item: AboutLink }) {
 }
 
 function DeviceItem({ item }: { item: AboutDevice }) {
-  return (
-    <div className={styles.device}>
+  const body = (
+    <>
       <span className={styles.deviceIcon}>
         <Glyph name={iconClass(item.icon, 'device')} />
       </span>
@@ -106,7 +106,21 @@ function DeviceItem({ item }: { item: AboutDevice }) {
         <strong>{item.label}</strong>
         {item.detail ? <small>{item.detail}</small> : null}
       </span>
-    </div>
+    </>
+  )
+  if (!item.href) return <div className={styles.device}>{body}</div>
+  return (
+    <a
+      className={styles.device}
+      href={item.href}
+      onMouseEnter={trackLinkOrigin}
+      onMouseMove={trackLinkOrigin}
+      {...(external(item.href)
+        ? { target: '_blank', rel: 'noreferrer noopener' }
+        : {})}
+    >
+      {body}
+    </a>
   )
 }
 

@@ -375,12 +375,15 @@
   background: rgb(39 39 42 / 0.72);
 }
 
-a.item {
+a.item,
+a.device {
   position: relative;
   isolation: isolate;
+  text-decoration: none;
 }
 
-a.item::before {
+a.item::before,
+a.device::before {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -396,12 +399,14 @@ a.item::before {
   pointer-events: none;
 }
 
-a.item:hover::before {
+a.item:hover::before,
+a.device:hover::before {
   opacity: 1;
   transform: scale(1);
 }
 
-a.item > * {
+a.item > *,
+a.device > * {
   position: relative;
   z-index: 1;
 }
@@ -571,11 +576,13 @@ a.item > * {
 
 @media (prefers-reduced-motion: reduce) {
   .item,
-  a.item::before {
+  a.item::before,
+  a.device::before {
     transition: none;
   }
 
-  a.item::before {
+  a.item::before,
+  a.device::before {
     transform: none;
   }
 }
