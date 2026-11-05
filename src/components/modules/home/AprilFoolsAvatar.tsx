@@ -165,7 +165,6 @@ export const AprilFoolsAvatarBurst = ({
           ? 'relative size-full cursor-pointer select-none [&_img]:[-webkit-user-drag:none]'
           : 'relative size-full select-none [&_img]:[-webkit-user-drag:none]'
       }
-      style={{ WebkitUserDrag: 'none' }}
       onClick={spawn}
       onDragStart={preventDrag}
     >
