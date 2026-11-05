@@ -1,0 +1,187 @@
+.line {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.28em 0.42em;
+  line-height: 1.45;
+}
+
+.chunk {
+  --rotate: 0deg;
+  --ty: 0px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin: 0.08em 0;
+  padding: 0.02em 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  transform: rotate(var(--rotate)) translateY(var(--ty));
+  transform-origin: center;
+}
+
+.face {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+.gold .face {
+  background-image: linear-gradient(#fff8dc 0%, #f6d365 42%, #c4891b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 0.5px #8a5a12;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 2px 0 rgba(138, 90, 18, 0.35));
+}
+
+.purple .face {
+  background-image: linear-gradient(
+    100deg,
+    #4c1d95 0%,
+    #7c3aed 48%,
+    #db2777 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-style: italic;
+}
+
+.sky .face {
+  color: #38bdf8;
+  -webkit-text-stroke: 0.5px #0369a1;
+  paint-order: stroke fill;
+}
+
+.banner {
+  background: linear-gradient(#ffe56a, #d9f99d 72%, #86efac);
+  border-radius: 0.18em;
+  box-shadow: 0 0.12em 0 rgba(0, 0, 0, 0.06);
+  padding: 0.06em 0.28em 0.1em;
+}
+
+.banner .face {
+  color: #dc2626;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.underline::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0.02em;
+  height: 0.1em;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed 50%, #ef4444);
+}
+
+.boxed {
+  border: 1.5px solid #1f2937;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.04em 0.22em 0.08em;
+}
+
+.glow {
+  filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.45));
+}
+
+.sunset .face,
+.rose .face,
+.ocean .face,
+.mint .face,
+.rainbow .face,
+.copper .face,
+.lilac .face,
+.candy .face {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  paint-order: stroke fill;
+}
+
+.sunset .face {
+  background-image: linear-gradient(
+    105deg,
+    #fb7185 0%,
+    #fb923c 46%,
+    #facc15 100%
+  );
+}
+
+.rose .face {
+  background-image: linear-gradient(
+    115deg,
+    #ffe4e6 0%,
+    #fb7185 42%,
+    #9f1239 100%
+  );
+}
+
+.ocean .face {
+  background-image: linear-gradient(
+    115deg,
+    #a5f3fc 0%,
+    #38bdf8 40%,
+    #4f46e5 100%
+  );
+}
+
+.mint .face {
+  background-image: linear-gradient(
+    115deg,
+    #ecfccb 0%,
+    #34d399 48%,
+    #0f766e 100%
+  );
+}
+
+.rainbow .face {
+  background-image: linear-gradient(
+    100deg,
+    #f43f5e 0%,
+    #f59e0b 28%,
+    #22c55e 52%,
+    #3b82f6 76%,
+    #a855f7 100%
+  );
+}
+
+.copper .face {
+  background-image: linear-gradient(
+    180deg,
+    #fff7ed 0%,
+    #fdba74 38%,
+    #c2410c 100%
+  );
+  -webkit-text-stroke: 0.4px #9a3412;
+}
+
+.lilac .face {
+  background-image: linear-gradient(
+    115deg,
+    #fae8ff 0%,
+    #d8b4fe 45%,
+    #7e22ce 100%
+  );
+}
+
+.candy .face {
+  background-image: linear-gradient(
+    110deg,
+    #fbcfe8 0%,
+    #c4b5fd 48%,
+    #67e8f9 100%
+  );
+}
+
+.floral .face {
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}

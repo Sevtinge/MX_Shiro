@@ -36,10 +36,25 @@ import {
   useAppConfigSelector,
 } from '~/providers/root/aggregation-data-provider'
 
+import { AprilFoolsAvatarBurst } from '~/components/modules/home/AprilFoolsAvatar'
+import {
+  AprilFoolsText,
+  useAprilFools,
+} from '~/components/modules/home/AprilFoolsWordArt'
+
 import { ActivityPostList } from './components/ActivityPostList'
 import { ActivityRecent } from './components/ActivityRecent'
 import { HeroGlow } from './components/HeroGlow'
 import { SiteStats } from './components/SiteStats'
+
+const heroTitleLines = (template: { type: string; text?: string }[]) => {
+  const lines = ['']
+  for (const item of template) {
+    if (item.type === 'br') lines.push('')
+    else if (item.text) lines[lines.length - 1] += item.text
+  }
+  return lines.map((line) => line.trim()).filter(Boolean)
+}
 
 export default function Home() {
   return (
@@ -97,6 +112,8 @@ const Hero = () => {
       ...config.hero,
     }
   })!
+  const aprilFools = useAprilFools()
+  const titleLines = heroTitleLines(title.template)
   const siteOwner = useAggregationSelector((agg) => agg.user)
   const { avatar, socialIds } = siteOwner || {}
   const prefersReducedMotion = useReducedMotion()
@@ -119,26 +136,34 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={softBouncePreset}
           >
-            {title.template.map((t, i) => {
-              const { type } = t
-              const prevAllTextLength = title.template
-                .slice(0, i)
-                .reduce((acc, cur) => {
-                  return acc + (cur.text?.length || 0)
-                }, 0)
-              return createElement(
-                type,
-                { key: i, className: t.class },
-                t.text && (
-                  <TextUpTransitionView
-                    initialDelay={prevAllTextLength * 0.05}
-                    eachDelay={0.05}
-                  >
-                    {t.text}
-                  </TextUpTransitionView>
-                ),
-              )
-            })}
+            {aprilFools
+              ? titleLines.map((line, index) => (
+                  <AprilFoolsText
+                    key={index}
+                    text={line}
+                    className="justify-center text-4xl md:text-5xl lg:justify-start"
+                  />
+                ))
+              : title.template.map((t, i) => {
+                  const { type } = t
+                  const prevAllTextLength = title.template
+                    .slice(0, i)
+                    .reduce((acc, cur) => {
+                      return acc + (cur.text?.length || 0)
+                    }, 0)
+                  return createElement(
+                    type,
+                    { key: i, className: t.class },
+                    t.text && (
+                      <TextUpTransitionView
+                        initialDelay={prevAllTextLength * 0.05}
+                        eachDelay={0.05}
+                      >
+                        {t.text}
+                      </TextUpTransitionView>
+                    ),
+                  )
+                })}
           </m.div>
 
           <BottomToUpTransitionView
@@ -146,7 +171,14 @@ const Hero = () => {
             transition={softBouncePreset}
             className="my-3 text-center lg:text-left"
           >
-            <span className="opacity-80">{description}</span>
+            {aprilFools ? (
+              <AprilFoolsText
+                text={description}
+                className="justify-center text-2xl md:text-3xl lg:justify-start"
+              />
+            ) : (
+              <span className="opacity-80">{description}</span>
+            )}
           </BottomToUpTransitionView>
 
           <ul className="center mx-[60px] mt-8 flex flex-wrap gap-6 lg:mx-auto lg:mt-28 lg:justify-start lg:gap-4">
@@ -182,17 +214,19 @@ const Hero = () => {
           }}
           className={clsx('lg:size-[300px]', 'size-[200px]', 'mt-24 lg:mt-0')}
         >
-          <Image
-            height={300}
-            width={300}
-            src={avatar!}
-            alt="Site Owner Avatar"
-            priority
-            className={clsxm(
-              'aspect-square rounded-full border border-slate-200 dark:border-neutral-800',
-              'w-full',
-            )}
-          />
+          <AprilFoolsAvatarBurst active={aprilFools}>
+            <Image
+              height={300}
+              width={300}
+              src={avatar!}
+              alt="Site Owner Avatar"
+              priority
+              draggable={false}
+              className={clsxm(
+                'pointer-events-none aspect-square w-full select-none rounded-full border border-slate-200 dark:border-neutral-800',
+              )}
+            />
+          </AprilFoolsAvatarBurst>
         </m.div>
 
         <m.div
