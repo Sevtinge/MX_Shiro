@@ -165,7 +165,12 @@ function SectionCard({ section }: { section: AboutSection }) {
         </div>
       ) : null}
       {section.layout === 'devices' ? (
-        <div className={styles.devices}>
+        <div
+          className={styles.devices}
+          style={{
+            gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
+          }}
+        >
           {section.devices.map((item) => (
             <DeviceItem key={`${item.icon || ''}-${item.label}`} item={item} />
           ))}

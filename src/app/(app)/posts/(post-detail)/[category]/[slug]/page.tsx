@@ -5,6 +5,7 @@ import { AckRead } from '~/components/common/AckRead'
 import { ArticleRoomPresence } from '~/components/common/ArticleRoomPresence'
 import { ClientOnly } from '~/components/common/ClientOnly'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
+import { MingcuteIconStyles } from '~/components/modules/page/about-card/MingcuteIconStyles'
 import {
   PostActionAside,
   PostBottomBarAction,
@@ -94,6 +95,7 @@ const PostPage = ({ data }: { data: ModelWithLiked<PostModel> }) => {
   const { id } = data
   return (
     <div className="relative w-full min-w-0">
+      <MingcuteIconStyles text={data.text} />
       <AckRead id={id} type="post" />
       <HeaderMetaInfoSetting />
       <ArticleCover cover={data.meta?.cover} />

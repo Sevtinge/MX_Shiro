@@ -19,6 +19,7 @@ import {
 } from '~/components/modules/note/NoteBanner'
 import { NoteFontSettingFab } from '~/components/modules/note/NoteFontFab'
 import { NoteMainContainer } from '~/components/modules/note/NoteMainContainer'
+import { MingcuteIconStyles } from '~/components/modules/page/about-card/MingcuteIconStyles'
 import { ArticleAiDeclaration } from '~/components/modules/shared/ArticleMeta'
 import { ArticleRightAside } from '~/components/modules/shared/ArticleRightAside'
 import { BanCopyWrapper } from '~/components/modules/shared/BanCopyWrapper'
@@ -59,6 +60,7 @@ export const dynamic = 'force-dynamic'
 function PageInner({ data }: { data: NoteModel }) {
   return (
     <>
+      <MingcuteIconStyles text={data.text} />
       <AckRead id={data.id} type="note" />
 
       <NoteHeadCover image={data.meta?.cover} />

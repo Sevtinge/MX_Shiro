@@ -132,7 +132,10 @@ const markdownLink = (value: string) => {
 }
 
 const isDeviceItem = (item: Item) =>
-  !item.href && item.parts.length >= 3 && item.details.length === 0
+  !item.href &&
+  item.details.length === 0 &&
+  item.parts.length >= 2 &&
+  !isSkillItem(item)
 
 const defaultSpan = (layout: AboutSectionLayout) =>
   layout === 'skills' || layout === 'goals' ? 12 : 6
@@ -271,7 +274,7 @@ const buildSection = (
     span: clamp(attrs.span, defaultSpan(layout), 12),
     columns: clamp(
       attrs.columns,
-      layout === 'links' && items.length > 4 ? 2 : 1,
+      layout === 'devices' || (layout === 'links' && items.length > 4) ? 2 : 1,
       4,
     ),
     layout,
@@ -292,16 +295,15 @@ const buildSection = (
     devices:
       layout === 'devices'
         ? items.map((item): AboutDevice => {
-            const label = markdownLink(
-              item.parts.length >= 3 ? item.parts[1] : item.label,
-            )
+            const hasIcon = item.parts.length >= 2
+            const label = markdownLink(hasIcon ? item.parts[1] : item.label)
             const detail = markdownLink(
               item.parts.length >= 3
                 ? item.parts.slice(2).join(' | ')
-                : item.details[0] || item.parts[1] || '',
+                : item.details[0] || '',
             )
             return {
-              icon: item.parts.length >= 3 ? item.parts[0] : attrs.icon,
+              icon: hasIcon ? item.parts[0] : attrs.icon,
               label: label.text,
               detail: detail.text || undefined,
               href: detail.href || label.href,

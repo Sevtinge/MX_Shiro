@@ -38,10 +38,23 @@ const ICONS: Record<string, string> = {
   android: 'i-mingcute-android-line',
 }
 
+const mingcuteClass = (name: string) => {
+  const match = /^(?:mingcute:|i-mingcute-)([a-z0-9-]+)$/i.exec(name.trim())
+  if (!match) return
+  return `i-mingcute-${match[1].toLowerCase()}`
+}
+
+const bundledIcons = new Set(Object.values(ICONS))
+
+export const isBundledIcon = (className: string) => bundledIcons.has(className)
+
 export const iconClass = (name?: string, fallback = 'link') => {
   if (!name) return ICONS[fallback]
-  if (/^i-(?:mingcute|material-symbols)-[\w-]+$/.test(name)) return name
-  return ICONS[name] || ICONS[fallback]
+  const trimmed = name.trim()
+  const packed = mingcuteClass(trimmed)
+  if (packed) return packed
+  if (/^i-material-symbols-[\w-]+$/.test(trimmed)) return trimmed
+  return ICONS[trimmed] || ICONS[fallback]
 }
 
 export const iconForSection = (

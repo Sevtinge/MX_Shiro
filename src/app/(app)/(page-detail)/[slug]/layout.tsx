@@ -4,6 +4,7 @@ import { cache } from 'react'
 
 import { ArticleRoomPresence } from '~/components/common/ArticleRoomPresence'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
+import { MingcuteIconStyles } from '~/components/modules/page/about-card/MingcuteIconStyles'
 import { TocFAB } from '~/components/modules/toc/TocFAB'
 import {
   BottomToUpSoftScaleTransitionView,
@@ -85,6 +86,7 @@ export default definePrerenderPage<PageParams>()({
   Component: ({ data, children }) => {
     return (
       <>
+        <MingcuteIconStyles text={data.text} />
         <CurrentPageDataProvider data={data} />
         <ArticleRoomPresence id={data.id} />
         <div className="relative flex min-h-[120px] w-full">
