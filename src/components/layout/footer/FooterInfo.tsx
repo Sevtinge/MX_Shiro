@@ -3,16 +3,20 @@ import type { JSX } from 'react'
 
 import { fetchAggregationData } from '~/app/(app)/api'
 import { IonIosArrowDown } from '~/components/icons/arrow'
-import { thinkingEnabled } from '~/constants/features'
 import { SubscribeTextButton } from '~/components/modules/subscribe/SubscribeTextButton'
 import { FloatPopover } from '~/components/ui/float-popover'
 import { MarkdownLink } from '~/components/ui/link'
+import { thinkingEnabled } from '~/constants/features'
 import { clsxm } from '~/lib/helper'
 import { getQueryClient } from '~/lib/query-client.server'
 import { queries } from '~/queries/definition'
 
 import type { FooterConfig } from './config'
-import { defaultLinkSections, withDonationLink } from './config'
+import {
+  defaultLinkSections,
+  withAboutSiteLink,
+  withDonationLink,
+} from './config'
 // import { footerConfig } from './config'
 import { GatewayInfo } from './GatewayInfo'
 import { OwnerName } from './OwnerName'
@@ -46,18 +50,19 @@ const FooterLinkSection = async () => {
   const footerConfig: FooterConfig = footer || {
     linkSections: defaultLinkSections,
   }
-  const linkSections = withDonationLink(
-    footerConfig.linkSections?.length
-      ? footerConfig.linkSections
-      : defaultLinkSections,
+  const linkSections = withAboutSiteLink(
+    withDonationLink(
+      footerConfig.linkSections?.length
+        ? footerConfig.linkSections
+        : defaultLinkSections,
+    ),
   )
     .map((section) => ({
       ...section,
       links: thinkingEnabled
         ? section.links
         : section.links.filter(
-            (link) =>
-              link.name !== '思考' && !link.href?.includes('/thinking'),
+            (link) => link.name !== '思考' && !link.href?.includes('/thinking'),
           ),
     }))
     .filter((section) => section.links.length > 0)

@@ -90,7 +90,7 @@ export function withDonationLink(sections: LinkSection[] = []): LinkSection[] {
       (link) => link.name === '友链' || link.href === '/friends',
     )
     links.splice(
-      friendIndex >= 0 ? friendIndex + 1 : links.length,
+      friendIndex !== -1 ? friendIndex + 1 : links.length,
       0,
       donationFooterLink,
     )
@@ -106,5 +106,49 @@ export function withDonationLink(sections: LinkSection[] = []): LinkSection[] {
       name: '更多',
       links: [donationFooterLink],
     },
+  ]
+}
+
+export const aboutSiteFooterLink = {
+  name: '关于本站',
+  href: '/about-site',
+}
+
+export function withAboutSiteLink(sections: LinkSection[] = []): LinkSection[] {
+  let inserted = false
+
+  const next = sections.map((section) => {
+    if (
+      section.links.some(
+        (link) => link.href === '/about-site' || link.name === '关于本站',
+      )
+    ) {
+      inserted = true
+      return section
+    }
+
+    if (section.name !== '关于') return section
+
+    const links = [...section.links]
+    const aboutMeIndex = links.findIndex(
+      (link) => link.name === '关于我' || link.href === '/about-me',
+    )
+    links.splice(
+      aboutMeIndex !== -1 ? aboutMeIndex + 1 : links.length,
+      0,
+      aboutSiteFooterLink,
+    )
+    inserted = true
+    return { ...section, links }
+  })
+
+  if (inserted) return next
+
+  return [
+    {
+      name: '关于',
+      links: [aboutSiteFooterLink],
+    },
+    ...next,
   ]
 }

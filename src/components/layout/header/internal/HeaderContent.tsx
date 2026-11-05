@@ -243,7 +243,7 @@ const ForDesktop: Component<{
         fixedHeader &&
         createPortal(
           <m.div
-            className="pointer-events-none absolute inset-0 [--spotlight-color:oklch(var(--a)_/_0.12)] transition-opacity duration-500"
+            className="pointer-events-none absolute inset-0 transition-opacity duration-500 [--spotlight-color:oklch(var(--a)_/_0.12)]"
             style={{ background, opacity: headerHovered ? 1 : 0 }}
             aria-hidden="true"
           />,
@@ -328,10 +328,16 @@ const HeaderMenuItem = memo<{
               layoutId={iconLayout ? 'header-menu-icon' : undefined}
               className="mr-2 flex items-center"
             >
-              {subItemActive?.icon ?? section.icon}
+              {section.fixedTitle
+                ? section.icon
+                : (subItemActive?.icon ?? section.icon)}
             </m.span>
           )}
-          <m.span layout>{subItemActive?.title ?? section.title}</m.span>
+          <m.span layout>
+            {section.fixedTitle
+              ? section.title
+              : (subItemActive?.title ?? section.title)}
+          </m.span>
         </span>
       </AnimatedItem>
     </MenuPopover>
@@ -357,6 +363,7 @@ function AnimatedItem({
       <As
         href={href}
         onClick={(event) => {
+          if (href.startsWith('#')) event.preventDefault()
           if (
             href === '/' &&
             event.button === 0 &&

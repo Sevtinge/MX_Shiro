@@ -4,6 +4,8 @@ import type { MarkdownToJSX } from 'markdown-to-jsx'
 import { Priority } from 'markdown-to-jsx'
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 
+import { AboutCard } from '~/components/modules/page/about-card/AboutCard'
+import { parseAboutInner } from '~/components/modules/page/about-card/parse'
 import { clsxm } from '~/lib/helper'
 import { WrappedElementProvider } from '~/providers/shared/WrappedElementProvider'
 
@@ -28,6 +30,7 @@ const shouldCatchContainerName = [
 
   'grid',
   'masonry',
+  'about',
 ].join('|')
 
 export const ContainerRule: MarkdownToJSX.Rule<{
@@ -170,6 +173,11 @@ export const ContainerRule: MarkdownToJSX.Rule<{
             return null
           }
         }
+      }
+      case 'about': {
+        const data = parseAboutInner(content)
+        if (!data) break
+        return <AboutCard key={state?.key} data={data} />
       }
       case 'masonry': {
         const { gap = 8 } = parseParams(params)

@@ -453,3 +453,44 @@ height=25
 ```
 ````
 
+### About card
+
+关于我这类页面可以把正文写成名片，不包含顶栏大图。页面标题仍用后台标题。卡片里的强调色跟随站点主题色，不要在 Markdown 里写死颜色。
+
+````md
+::: about
+
+## 简介
+ABOUT ME
+
+### identity
+handle: Aozora
+name: 青空
+avatar: https://example.com/avatar.png
+bio: 一句话介绍。
+- 坐标 | 上海
+
+### quotes
+> “一句想留在名片上的话。”
+> — 自己
+
+### 社交 {icon=at span=7 columns=2}
+Social
+
+- [GitHub](https://github.com)
+  your-name
+
+### 爱好 {icon=heart span=12 layout=skills}
+Hobbies
+
+#### 创作
+- 写作 | 70
+
+### 接下来 {icon=flag span=12 layout=goals}
+Next
+
+- 把示例换成自己的内容
+:::
+````
+
+`layout` 可以是 `links`、`devices`、`skills`、`goals`。设备写成 `- laptop | 笔记本 | 说明`。正文以 `::: about` 开头时，页面会按名片渲染。

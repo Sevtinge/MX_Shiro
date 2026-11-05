@@ -6,6 +6,8 @@ import type { PropsWithChildren } from 'react'
 import { Fragment, useEffect, useMemo } from 'react'
 
 import { useSetHeaderMetaInfo } from '~/components/layout/header/hooks'
+import { AboutCard } from '~/components/modules/page/about-card/AboutCard'
+import { parseAboutPage } from '~/components/modules/page/about-card/parse'
 import { GoToAdminEditingButton } from '~/components/modules/shared/GoToAdminEditingButton'
 import { WithArticleSelectionAction } from '~/components/modules/shared/WithArticleSelectionAction'
 import { MainMarkdown } from '~/components/ui/markdown'
@@ -29,13 +31,28 @@ export const PageLoading: Component = ({ children }) => {
 export const PageMarkdown = () => {
   const text = useCurrentPageDataSelector((data) => data?.text)
   if (!text) return null
+  const about = parseAboutPage(text)
+  if (!about) {
+    return (
+      <MainMarkdown
+        allowsScript
+        value={text}
+        className="min-w-0 overflow-hidden"
+      />
+    )
+  }
 
   return (
-    <MainMarkdown
-      allowsScript
-      value={text}
-      className="min-w-0 overflow-hidden"
-    />
+    <>
+      <AboutCard data={about.data} />
+      {about.rest ? (
+        <MainMarkdown
+          allowsScript
+          value={about.rest}
+          className="min-w-0 overflow-hidden"
+        />
+      ) : null}
+    </>
   )
 }
 export const MarkdownImageRecordProviderInternal = (

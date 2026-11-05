@@ -23,6 +23,7 @@ export interface IHeaderMenu {
   icon?: ReactNode
   subMenu?: Omit<IHeaderMenu, 'exclude'>[]
   exclude?: string[]
+  fixedTitle?: boolean
 }
 export const headerMenuConfig: IHeaderMenu[] = [
   {
@@ -105,6 +106,30 @@ export const headerMenuConfig: IHeaderMenu[] = [
         title: '一言',
         path: '/says',
         icon: h(FaSolidComments),
+      },
+    ],
+  },
+  {
+    title: '关于',
+    icon: h('i', {
+      className: 'i-mingcute-information-fill flex center',
+    }),
+    path: '/about',
+    fixedTitle: true,
+    subMenu: [
+      {
+        title: '关于我',
+        path: '/about-me',
+        icon: h('i', {
+          className: 'i-mingcute-user-3-fill flex center',
+        }),
+      },
+      {
+        title: '关于本站',
+        path: '/about-site',
+        icon: h('i', {
+          className: 'i-mingcute-planet-fill flex center',
+        }),
       },
     ],
   },
