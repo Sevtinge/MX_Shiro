@@ -267,16 +267,18 @@ const buildSection = (
             },
           ]
         : []
+  const columns = clamp(
+    attrs.columns,
+    layout === 'devices' || (layout === 'links' && items.length > 4) ? 2 : 1,
+    4,
+  )
   return {
     title,
     subtitle: preface.join(' ') || undefined,
     icon: attrs.icon,
     span: clamp(attrs.span, defaultSpan(layout), 12),
-    columns: clamp(
-      attrs.columns,
-      layout === 'devices' || (layout === 'links' && items.length > 4) ? 2 : 1,
-      4,
-    ),
+    columns,
+    stackColumns: clamp(attrs.stackColumns, columns, 4),
     layout,
     links:
       layout === 'links'

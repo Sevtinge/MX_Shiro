@@ -131,6 +131,10 @@ function DeviceItem({ item }: { item: AboutDevice }) {
 
 function SectionCard({ section }: { section: AboutSection }) {
   const icon = iconForSection(section.title, section.icon, section.layout)
+  const columnStyle = {
+    '--about-columns': section.columns,
+    '--about-stack-columns': section.stackColumns,
+  } as CSSProperties
   return (
     <SpotlightCard
       className={styles.section}
@@ -146,12 +150,7 @@ function SectionCard({ section }: { section: AboutSection }) {
         </div>
       </div>
       {section.layout === 'links' ? (
-        <div
-          className={styles.list}
-          style={{
-            gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
-          }}
-        >
+        <div className={styles.list} style={columnStyle}>
           {section.links.map((item) => (
             <LinkItem
               key={`${item.label}-${item.detail || ''}-${item.href || ''}`}
@@ -161,12 +160,7 @@ function SectionCard({ section }: { section: AboutSection }) {
         </div>
       ) : null}
       {section.layout === 'devices' ? (
-        <div
-          className={styles.devices}
-          style={{
-            gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
-          }}
-        >
+        <div className={styles.devices} style={columnStyle}>
           {section.devices.map((item) => (
             <DeviceItem key={`${item.icon || ''}-${item.label}`} item={item} />
           ))}

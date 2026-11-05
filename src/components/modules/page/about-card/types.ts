@@ -23,6 +23,7 @@ export type AboutSection = {
   icon?: string
   span: number
   columns: number
+  stackColumns: number
   layout: AboutSectionLayout
   links: AboutLink[]
   devices: AboutDevice[]

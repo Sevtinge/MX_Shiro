@@ -352,6 +352,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.list,
+.devices {
+  grid-template-columns: repeat(var(--about-columns, 1), minmax(0, 1fr));
+}
+
 .item,
 .device,
 .goal {
@@ -543,6 +548,14 @@ a.device > * {
   .quotes,
   .card {
     grid-column: span 12 !important;
+  }
+
+  .list,
+  .devices {
+    grid-template-columns: repeat(
+      var(--about-stack-columns, var(--about-columns, 1)),
+      minmax(0, 1fr)
+    );
   }
 }
 
