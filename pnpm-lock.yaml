@@ -295,8 +295,8 @@ importers:
         specifier: 1.2.28
         version: 1.2.28
       '@iconify-json/mingcute':
-        specifier: 1.2.3
-        version: 1.2.3
+        specifier: 1.2.9
+        version: 1.2.9
       '@innei/prettier':
         specifier: 0.15.0
         version: 0.15.0
@@ -1185,8 +1185,8 @@ packages:
   '@iconify-json/material-symbols@1.2.28':
     resolution: {integrity: sha512-yJsuEWZ9cDhQfg9qt4YQYhAqh6Pht0B23fGxr/jbMV12yJIft48Z/Qg5txqAXXsueDci2ZxAPqBPyKZIaEBq1w==}
 
-  '@iconify-json/mingcute@1.2.3':
-    resolution: {integrity: sha512-yiEQfLBF5iwyOdxuY0kEU06+8Mp6Mrp14KVXTb+5jjSVuD71C9EQrzM/mm1Efd8Nu2amJalTPisl3loC8pHBqQ==}
+  '@iconify-json/mingcute@1.2.9':
+    resolution: {integrity: sha512-YASrrlFAn+4uLF3xV7DpZhB06ZOP+H1i0sKvm7P75Kl+RkjYntefbG+m8iNaBCjlDdcUxhj1/3kVlrdFTLlVrQ==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -7067,7 +7067,7 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/mingcute@1.2.3':
+  '@iconify-json/mingcute@1.2.9':
     dependencies:
       '@iconify/types': 2.0.0
 
