@@ -359,6 +359,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
   min-height: 52px;
   padding: 8px 12px;
   color: inherit;
@@ -566,11 +567,9 @@ a.device > * {
     padding: 16px;
   }
 
-  .list,
-  .devices,
   .groups,
   .goals {
-    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -148,13 +148,9 @@ function SectionCard({ section }: { section: AboutSection }) {
       {section.layout === 'links' ? (
         <div
           className={styles.list}
-          style={
-            section.columns > 1
-              ? {
-                  gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
-                }
-              : undefined
-          }
+          style={{
+            gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
+          }}
         >
           {section.links.map((item) => (
             <LinkItem
