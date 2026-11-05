@@ -19,6 +19,23 @@ const ICONS: Record<string, string> = {
   mail: 'i-mingcute-mail-line',
   user: 'i-mingcute-user-3-line',
   arrow: 'i-mingcute-arrow-right-up-line',
+  code: 'i-mingcute-code-line',
+  braces: 'i-mingcute-braces-line',
+  terminal: 'i-mingcute-terminal-line',
+  chip: 'i-mingcute-chip-line',
+  platform: 'i-mingcute-chip-line',
+  vscode: 'i-mingcute-vscode-line',
+  github: 'i-mingcute-github-line',
+  overview: 'i-mingcute-layout-grid-line',
+  grid: 'i-mingcute-layout-grid-line',
+  monitor: 'i-mingcute-monitor-line',
+  os: 'i-mingcute-monitor-line',
+  computer: 'i-mingcute-computer-line',
+  windows: 'i-mingcute-windows-line',
+  apple: 'i-mingcute-apple-line',
+  macos: 'i-mingcute-apple-line',
+  linux: 'i-mingcute-linux-line',
+  android: 'i-mingcute-android-line',
 }
 
 export const iconClass = (name?: string, fallback = 'link') => {
@@ -36,6 +53,10 @@ export const iconForSection = (
   if (/设定|起源|关于/.test(title)) return ICONS.wand
   if (/社交|联系|链接/.test(title)) return ICONS.at
   if (/游戏/.test(title)) return ICONS.game
+  if (/操作系统/.test(title)) return ICONS.os
+  if (/语言/.test(title)) return ICONS.code
+  if (/平台/.test(title)) return ICONS.chip
+  if (/概览/.test(title)) return ICONS.overview
   if (/设备/.test(title)) return ICONS.device
   if (/爱好|技能|兴趣/.test(title)) return ICONS.heart
   if (/接下来|目标|计划/.test(title)) return ICONS.flag
