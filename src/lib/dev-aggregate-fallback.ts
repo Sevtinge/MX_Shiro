@@ -74,7 +74,7 @@ export const devAggregateFallback = {
       },
     },
   },
-} as AggregateRoot & {
+} as unknown as AggregateRoot & {
   theme: AppThemeConfig
 }
 

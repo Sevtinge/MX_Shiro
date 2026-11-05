@@ -69,8 +69,9 @@ const parseItems = (lines: string[]) => {
       items.push(parseItemHead(item[1].trim()))
       continue
     }
-    if (/^\s+\S/.test(line) && items.length > 0) {
-      items.at(-1).details.push(line.trim())
+    const current = items.at(-1)
+    if (/^\s+\S/.test(line) && current) {
+      current.details.push(line.trim())
     }
   }
   return items
@@ -156,8 +157,9 @@ const parseIdentity = (lines: string[]): AboutIdentity | undefined => {
       fields[currentKey] = `${fields[currentKey]} ${line.trim()}`.trim()
       continue
     }
-    if (/^\s+\S/.test(line) && facts.length > 0 && !currentKey) {
-      facts.at(-1).value = `${facts.at(-1).value} ${line.trim()}`.trim()
+    const factItem = facts.at(-1)
+    if (/^\s+\S/.test(line) && factItem && !currentKey) {
+      factItem.value = `${factItem.value} ${line.trim()}`.trim()
       continue
     }
     const meta = /^([A-Z][\w-]*)\s*:\s*(.*)$/i.exec(line.trim())

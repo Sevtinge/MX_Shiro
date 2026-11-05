@@ -274,7 +274,7 @@ function SpotlightCard({
       <m.div
         aria-hidden
         className={styles.spotlightGlow}
-        style={{ background, opacity: spot?.visible ?? 0 } as CSSProperties}
+        style={{ background, opacity: spot?.visible ?? 0 }}
       />
       <div className={styles.cardBody}>{children}</div>
     </article>
