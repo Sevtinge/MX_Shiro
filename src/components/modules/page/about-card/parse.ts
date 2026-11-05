@@ -269,7 +269,11 @@ const buildSection = (
         : []
   const columns = clamp(
     attrs.columns,
-    layout === 'devices' || (layout === 'links' && items.length > 4) ? 2 : 1,
+    layout === 'devices' ||
+      layout === 'goals' ||
+      (layout === 'links' && items.length > 4)
+      ? 2
+      : 1,
     4,
   )
   return {

@@ -353,7 +353,8 @@
 }
 
 .list,
-.devices {
+.devices,
+.goals {
   grid-template-columns: repeat(var(--about-columns, 1), minmax(0, 1fr));
 }
 
@@ -551,7 +552,8 @@ a.device > * {
   }
 
   .list,
-  .devices {
+  .devices,
+  .goals {
     grid-template-columns: repeat(
       var(--about-stack-columns, var(--about-columns, 1)),
       minmax(0, 1fr)
@@ -580,8 +582,7 @@ a.device > * {
     padding: 16px;
   }
 
-  .groups,
-  .goals {
+  .groups {
     grid-template-columns: minmax(0, 1fr);
   }
 }

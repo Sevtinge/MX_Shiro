@@ -199,7 +199,7 @@ function SectionCard({ section }: { section: AboutSection }) {
         </div>
       ) : null}
       {section.layout === 'goals' ? (
-        <ul className={styles.goals}>
+        <ul className={styles.goals} style={columnStyle}>
           {section.goals.map((goal) => (
             <li key={goal} className={styles.goal}>
               {goal}
