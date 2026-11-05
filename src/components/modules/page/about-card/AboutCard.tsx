@@ -102,10 +102,15 @@ function DeviceItem({ item }: { item: AboutDevice }) {
       <span className={styles.deviceIcon}>
         <Glyph name={iconClass(item.icon, 'device')} />
       </span>
-      <span>
+      <span className={styles.deviceCopy}>
         <strong>{item.label}</strong>
         {item.detail ? <small>{item.detail}</small> : null}
       </span>
+      {item.href ? (
+        <span className={styles.arrow}>
+          <Glyph name={iconClass('arrow')} />
+        </span>
+      ) : null}
     </>
   )
   if (!item.href) return <div className={styles.device}>{body}</div>

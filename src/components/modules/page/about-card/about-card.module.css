@@ -417,7 +417,7 @@ a.device > * {
 }
 
 .copy,
-.device span:last-child {
+.deviceCopy {
   display: flex;
   min-width: 0;
   flex: 1;
