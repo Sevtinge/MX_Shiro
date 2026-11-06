@@ -58,6 +58,19 @@ export const defaultLinkSections: LinkSection[] = [
       },
     ],
   },
+  {
+    name: '法律',
+    links: [
+      {
+        name: '用户协议',
+        href: '/term-of-service',
+      },
+      {
+        name: '隐私政策',
+        href: '/privacy-policy',
+      },
+    ],
+  },
 ]
 
 export interface FooterConfig {
@@ -151,4 +164,44 @@ export function withAboutSiteLink(sections: LinkSection[] = []): LinkSection[] {
     },
     ...next,
   ]
+}
+
+export const legalFooterLinks = [
+  {
+    name: '用户协议',
+    href: '/term-of-service',
+  },
+  {
+    name: '隐私政策',
+    href: '/privacy-policy',
+  },
+]
+
+export function withLegalSection(sections: LinkSection[] = []): LinkSection[] {
+  const existing = sections.find((section) => section.name === '法律')
+  if (existing) {
+    return sections.map((section) => {
+      if (section.name !== '法律') return section
+      const links = [...section.links]
+      for (const link of legalFooterLinks) {
+        if (
+          links.some(
+            (item) => item.href === link.href || item.name === link.name,
+          )
+        ) {
+          continue
+        }
+        links.push(link)
+      }
+      return { ...section, links }
+    })
+  }
+
+  const contactIndex = sections.findIndex((section) => section.name === '联系')
+  const next = [...sections]
+  next.splice(contactIndex === -1 ? next.length : contactIndex + 1, 0, {
+    name: '法律',
+    links: legalFooterLinks,
+  })
+  return next
 }

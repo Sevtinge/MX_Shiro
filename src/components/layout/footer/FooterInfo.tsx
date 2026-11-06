@@ -16,6 +16,7 @@ import {
   defaultLinkSections,
   withAboutSiteLink,
   withDonationLink,
+  withLegalSection,
 } from './config'
 // import { footerConfig } from './config'
 import { GatewayInfo } from './GatewayInfo'
@@ -50,11 +51,13 @@ const FooterLinkSection = async () => {
   const footerConfig: FooterConfig = footer || {
     linkSections: defaultLinkSections,
   }
-  const linkSections = withAboutSiteLink(
-    withDonationLink(
-      footerConfig.linkSections?.length
-        ? footerConfig.linkSections
-        : defaultLinkSections,
+  const linkSections = withLegalSection(
+    withAboutSiteLink(
+      withDonationLink(
+        footerConfig.linkSections?.length
+          ? footerConfig.linkSections
+          : defaultLinkSections,
+      ),
     ),
   )
     .map((section) => ({

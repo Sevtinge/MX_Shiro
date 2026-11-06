@@ -84,10 +84,13 @@ export default definePrerenderPage<PageParams>()({
   },
 
   Component: ({ data, children }) => {
+    const hidePageComment =
+      data.slug === 'term-of-service' || data.slug === 'privacy-policy'
+    const pageData = hidePageComment ? { ...data, allowComment: false } : data
     return (
       <>
         <MingcuteIconStyles text={data.text} />
-        <CurrentPageDataProvider data={data} />
+        <CurrentPageDataProvider data={pageData} />
         <ArticleRoomPresence id={data.id} />
         <div className="relative flex min-h-[120px] w-full">
           <PageLoading>
@@ -125,12 +128,14 @@ export default definePrerenderPage<PageParams>()({
 
           <LayoutRightSideProvider className="absolute inset-y-0 right-0 hidden translate-x-full lg:block" />
         </div>
-        <BottomToUpSoftScaleTransitionView delay={1000}>
-          <CommentAreaRootLazy
-            refId={data.id}
-            allowComment={data.allowComment}
-          />
-        </BottomToUpSoftScaleTransitionView>
+        {hidePageComment ? null : (
+          <BottomToUpSoftScaleTransitionView delay={1000}>
+            <CommentAreaRootLazy
+              refId={data.id}
+              allowComment={data.allowComment}
+            />
+          </BottomToUpSoftScaleTransitionView>
+        )}
 
         <OnlyMobile>
           <TocFAB />
