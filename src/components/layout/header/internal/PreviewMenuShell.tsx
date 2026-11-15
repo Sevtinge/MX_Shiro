@@ -133,7 +133,6 @@ export const PreviewMenuShell: Component<{
       return (
         <div role="menu" aria-label={label}>
           <EmbeddedBody
-            label={label}
             sections={sections}
             resolvedActiveId={resolvedActiveId}
             onActive={onActive}

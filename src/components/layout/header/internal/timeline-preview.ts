@@ -47,12 +47,12 @@ const postItem = (post: TopPost): TimelineMenuItem => ({
 })
 
 export async function loadTimelineMenu(): Promise<TimelineMenuData> {
-  const top = await apiClient.aggregate.getTop(8)
-  const notes: TopNote[] = top.notes ?? top.data?.notes ?? []
-  const posts: TopPost[] = top.posts ?? top.data?.posts ?? []
+  const { notes, posts } = (await apiClient.aggregate.getTop(8)).$serialized
+  const listedNotes: TopNote[] = notes
+  const listedPosts: TopPost[] = posts
   return {
-    note: notes.map(noteItem),
-    post: posts.map(postItem),
-    memory: notes.filter((note) => note.bookmark).map(noteItem),
+    note: listedNotes.map(noteItem),
+    post: listedPosts.map(postItem),
+    memory: listedNotes.filter((note) => note.bookmark).map(noteItem),
   }
 }
