@@ -25,6 +25,8 @@ import type { IHeaderMenu } from '../config'
 import { useHeaderConfig } from './HeaderDataConfigureProvider'
 import { useHeaderHasMetaInfo, useMenuOpacity } from './hooks'
 import { MenuPopover } from './MenuPopover'
+import { NavPreviewProvider } from './NavPreview'
+import { previewKindFor, useNavPreview } from './nav-preview-context'
 
 export const HeaderContent = () => {
   return (
@@ -216,81 +218,83 @@ const ForDesktop: Component<{
     }
   }, [shouldHideNavBg, mouseX, mouseY, radius])
   return (
-    <m.nav
-      ref={navRef}
-      layout="size"
-      onMouseMove={shouldHideNavBg ? undefined : handleMouseMove}
-      className={clsxm(
-        'relative',
-        'rounded-full bg-gradient-to-b from-zinc-50/70 to-white/90',
-        'shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur-md',
-        'dark:from-zinc-900/70 dark:to-zinc-800/90 dark:ring-zinc-100/10',
-        'group [--spotlight-color:oklch(var(--a)_/_0.12)]',
-        'pointer-events-auto duration-200',
-        shouldHideNavBg && '!bg-none !shadow-none !ring-transparent',
-        className,
-      )}
-    >
-      {/* Keep the pill spotlight only while the navigation is floating. */}
-      {!shouldHideNavBg && (
-        <m.div
-          className="pointer-events-none absolute -inset-px rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-          style={{ background }}
-          aria-hidden="true"
-        />
-      )}
-      {shouldHideNavBg &&
-        fixedHeader &&
-        createPortal(
-          <m.div
-            className="pointer-events-none absolute inset-0 transition-opacity duration-500 [--spotlight-color:oklch(var(--a)_/_0.12)]"
-            style={{ background, opacity: headerHovered ? 1 : 0 }}
-            aria-hidden="true"
-          />,
-          fixedHeader,
+    <NavPreviewProvider>
+      <m.nav
+        ref={navRef}
+        layout="size"
+        onMouseMove={shouldHideNavBg ? undefined : handleMouseMove}
+        className={clsxm(
+          'relative',
+          'rounded-full bg-gradient-to-b from-zinc-50/70 to-white/90',
+          'shadow-lg shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur-md',
+          'dark:from-zinc-900/70 dark:to-zinc-800/90 dark:ring-zinc-100/10',
+          'group [--spotlight-color:oklch(var(--a)_/_0.12)]',
+          'pointer-events-auto duration-200',
+          shouldHideNavBg && '!bg-none !shadow-none !ring-transparent',
+          className,
         )}
-      {/* Measure the fully expanded menu independently of the visible navigation. */}
-      <div
-        ref={fullMenuRef}
-        aria-hidden="true"
-        className="pointer-events-none invisible absolute left-0 top-0 flex w-max px-4 font-medium"
       >
-        {fullMenu.map((section) => {
-          const active = getMenuActiveState(section, pathname)
-          return (
-            <span
-              key={section.path}
-              className="block whitespace-nowrap px-4 py-2"
-            >
-              {active.isActive && (
-                <span className="mr-2 inline-flex items-center">
-                  {active.subItemActive?.icon ?? section.icon}
-                </span>
-              )}
-              <span>{active.subItemActive?.title ?? section.title}</span>
-            </span>
-          )
-        })}
-      </div>
-      <div className="flex px-4 font-medium text-zinc-800 dark:text-zinc-200">
-        {(showAll ? fullMenu : headerMenuConfig).map((section) => {
-          const { isActive, subItemActive } = getMenuActiveState(
-            section,
-            pathname,
-          )
+        {/* Keep the pill spotlight only while the navigation is floating. */}
+        {!shouldHideNavBg && (
+          <m.div
+            className="pointer-events-none absolute -inset-px rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{ background }}
+            aria-hidden="true"
+          />
+        )}
+        {shouldHideNavBg &&
+          fixedHeader &&
+          createPortal(
+            <m.div
+              className="pointer-events-none absolute inset-0 transition-opacity duration-500 [--spotlight-color:oklch(var(--a)_/_0.12)]"
+              style={{ background, opacity: headerHovered ? 1 : 0 }}
+              aria-hidden="true"
+            />,
+            fixedHeader,
+          )}
+        {/* Measure the fully expanded menu independently of the visible navigation. */}
+        <div
+          ref={fullMenuRef}
+          aria-hidden="true"
+          className="pointer-events-none invisible absolute left-0 top-0 flex w-max px-4 font-medium"
+        >
+          {fullMenu.map((section) => {
+            const active = getMenuActiveState(section, pathname)
+            return (
+              <span
+                key={section.path}
+                className="block whitespace-nowrap px-4 py-2"
+              >
+                {active.isActive && (
+                  <span className="mr-2 inline-flex items-center">
+                    {active.subItemActive?.icon ?? section.icon}
+                  </span>
+                )}
+                <span>{active.subItemActive?.title ?? section.title}</span>
+              </span>
+            )
+          })}
+        </div>
+        <div className="flex px-4 font-medium text-zinc-800 dark:text-zinc-200">
+          {(showAll ? fullMenu : headerMenuConfig).map((section) => {
+            const { isActive, subItemActive } = getMenuActiveState(
+              section,
+              pathname,
+            )
 
-          return (
-            <HeaderMenuItem
-              iconLayout={animatedIcon}
-              section={section}
-              key={section.path}
-              subItemActive={subItemActive}
-              isActive={isActive}
-            />
-          )
-        })}
-      </div>
-    </m.nav>
+            return (
+              <HeaderMenuItem
+                iconLayout={animatedIcon}
+                section={section}
+                key={section.path}
+                subItemActive={subItemActive}
+                isActive={isActive}
+              />
+            )
+          })}
+        </div>
+      </m.nav>
+    </NavPreviewProvider>
   )
 }
 
@@ -315,31 +319,53 @@ const HeaderMenuItem = memo<{
 }>(({ section, isActive, subItemActive, iconLayout }) => {
   const href = section.path
 
+  const preview = useNavPreview()
+  const previewKind = previewKindFor(section)
+  const item = (
+    <AnimatedItem
+      href={href}
+      isActive={isActive}
+      className="transition-[padding]"
+    >
+      <span className="relative flex items-center">
+        {isActive && (
+          <m.span
+            layoutId={iconLayout ? 'header-menu-icon' : undefined}
+            className="mr-2 flex items-center"
+          >
+            {section.fixedTitle
+              ? section.icon
+              : (subItemActive?.icon ?? section.icon)}
+          </m.span>
+        )}
+        <m.span layout>
+          {section.fixedTitle
+            ? section.title
+            : (subItemActive?.title ?? section.title)}
+        </m.span>
+      </span>
+    </AnimatedItem>
+  )
+  if (previewKind && preview) {
+    return (
+      <div
+        className="inline-block"
+        onMouseEnter={(event) =>
+          preview.show(previewKind, section, event.currentTarget)
+        }
+        onMouseLeave={preview.scheduleClose}
+        onFocusCapture={(event) =>
+          preview.show(previewKind, section, event.currentTarget)
+        }
+        onBlurCapture={preview.scheduleClose}
+      >
+        {item}
+      </div>
+    )
+  }
   return (
     <MenuPopover subMenu={section.subMenu} key={href}>
-      <AnimatedItem
-        href={href}
-        isActive={isActive}
-        className="transition-[padding]"
-      >
-        <span className="relative flex items-center">
-          {isActive && (
-            <m.span
-              layoutId={iconLayout ? 'header-menu-icon' : undefined}
-              className="mr-2 flex items-center"
-            >
-              {section.fixedTitle
-                ? section.icon
-                : (subItemActive?.icon ?? section.icon)}
-            </m.span>
-          )}
-          <m.span layout>
-            {section.fixedTitle
-              ? section.title
-              : (subItemActive?.title ?? section.title)}
-          </m.span>
-        </span>
-      </AnimatedItem>
+      {item}
     </MenuPopover>
   )
 })

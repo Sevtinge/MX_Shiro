@@ -15,3 +15,19 @@ test('uses the gateway article room prefix for subscriptions and room counts', (
   assert.equal(getArticleRoomCount({ [`article-${id}`]: 2 }, id), 2)
   assert.equal(getArticleRoomCount({ [`article_${id}`]: 2 }, id), 0)
 })
+
+test('reads counts after room names are camelcased', () => {
+  assert.equal(
+    getArticleRoomCount({ articlePreviewPostWs: 3 }, 'preview-post-ws'),
+    3,
+  )
+  assert.equal(
+    getArticleRoomCount(
+      { articleA07f1f77bcf86cd799439011: 4 },
+      'a07f1f77bcf86cd799439011',
+    ),
+    4,
+  )
+  assert.equal(isArticleRoomName('articlePreviewPostWs'), true)
+  assert.equal(isArticleRoomName('home'), false)
+})

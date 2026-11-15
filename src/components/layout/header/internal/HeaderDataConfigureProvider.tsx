@@ -40,10 +40,19 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
     if (pageMeta) {
       const homeIndex = nextMenuConfig.findIndex((item) => item.type === 'Home')
       if (homeIndex !== -1) {
+        const reservedPaths = new Set(
+          baseHeaderMenuConfig.flatMap((item) => [
+            item.path,
+            ...(item.subMenu?.map((sub) => sub.path) ?? []),
+          ]),
+        )
         nextMenuConfig[homeIndex].subMenu = []
         for (const page of pageMeta) {
+          const path = `/${page.slug}`
+          // About pages already live under the 关于 menu.
+          if (reservedPaths.has(path)) continue
           nextMenuConfig[homeIndex].subMenu!.push({
-            path: `/${page.slug}`,
+            path,
             title: page.title,
           })
         }

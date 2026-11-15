@@ -82,6 +82,12 @@ export const eventHandler = (
       break
     }
 
+    case EventTypes.ACTIVITY_UPDATE_PRESENCE:
+    case EventTypes.ACTIVITY_LEAVE_PRESENCE: {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+      break
+    }
+
     case EventTypes.POST_UPDATE: {
       const post = data as PostModel
       const currentData = getGlobalCurrentPostData()
