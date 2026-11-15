@@ -8,7 +8,6 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { RootPortal } from '~/components/ui/portal'
 import { microReboundPreset } from '~/constants/spring'
-import { clsxm } from '~/lib/helper'
 import { apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
@@ -16,8 +15,9 @@ import { queryClient } from '~/providers/root/react-query-provider'
 
 import type { IHeaderMenu } from '../config'
 import { useNavPreview } from './nav-preview-context'
-import { EntryList } from './PreviewMenuShell'
 import { loadCategoryPreviewPosts } from './post-preview'
+import { previewGridStyle } from './preview-layout'
+import { EntryList, PreviewRail } from './PreviewMenuShell'
 
 const panelWidth = 720
 const noCategories: CategoryModel[] = []
@@ -205,40 +205,6 @@ export const PostsMenuPopover: Component<{
 })
 PostsMenuPopover.displayName = 'PostsMenuPopover'
 
-const CategoryRow = ({
-  category,
-  active,
-  onActivate,
-  onNavigate,
-}: {
-  category: CategoryModel
-  active: boolean
-  onActivate: () => void
-  onNavigate: () => void
-}) => (
-  <Link
-    href={`/categories/${category.slug}`}
-    role="menuitem"
-    className={clsxm(
-      'relative flex items-center justify-between gap-4 px-5 py-3 text-sm transition-colors',
-      active
-        ? 'bg-accent/5 text-zinc-900 dark:text-zinc-50'
-        : 'text-zinc-500 hover:bg-accent/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
-    )}
-    onMouseEnter={onActivate}
-    onFocus={onActivate}
-    onClick={onNavigate}
-  >
-    {active && (
-      <span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-accent" />
-    )}
-    <span className="min-w-0 truncate">{category.name}</span>
-    <span className="shrink-0 tabular-nums text-accent/80">
-      {category.count || 0}
-    </span>
-  </Link>
-)
-
 const RecentPosts = ({
   slug,
   onNavigate,
@@ -290,21 +256,19 @@ const PostsPreviewBody = ({
   dismiss: () => void
 }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-[13rem_minmax(0,1fr)]">
-      <div className="border-b border-zinc-900/10 py-3 dark:border-zinc-100/10 sm:border-b-0 sm:border-r">
-        <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">分类</div>
-        <div className="max-h-[22rem] overflow-y-auto">
-          {categories.map((category) => (
-            <CategoryRow
-              key={category.slug}
-              category={category}
-              active={category.slug === resolvedActiveSlug}
-              onActivate={() => setActiveSlug(category.slug)}
-              onNavigate={dismiss}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="grid w-max" style={previewGridStyle}>
+      <PreviewRail
+        heading="分类"
+        sections={categories.map((category) => ({
+          id: category.slug,
+          title: category.name,
+          href: `/categories/${category.slug}`,
+          count: category.count || 0,
+        }))}
+        activeId={resolvedActiveSlug}
+        onActive={setActiveSlug}
+        onNavigate={dismiss}
+      />
       <div className="min-w-0 py-3">
         <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">
           {activeCategory ? (

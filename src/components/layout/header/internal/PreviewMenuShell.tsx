@@ -1,8 +1,20 @@
 'use client'
 
-import { AnimatePresence, m } from 'motion/react'
+import {
+  AnimatePresence,
+  m,
+  useMotionTemplate,
+  useMotionValue,
+} from 'motion/react'
 import Link from 'next/link'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import { RootPortal } from '~/components/ui/portal'
 import { microReboundPreset } from '~/constants/spring'
@@ -10,6 +22,7 @@ import { clsxm } from '~/lib/helper'
 
 import { useNavPreview } from './nav-preview-context'
 import { formatCategoryPreviewDate } from './post-preview'
+import { previewGridStyle } from './preview-layout'
 
 const panelWidth = 720
 export const previewRowCount = 5
@@ -196,7 +209,7 @@ export const PreviewMenuShell: Component<{
                     close()
                     triggerRef.current?.querySelector('a')?.focus()
                   }
-                  if (!sections.length) return
+                  if (sections.length === 0) return
                   if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
                     return
                   }
@@ -241,6 +254,126 @@ export const PreviewMenuShell: Component<{
 )
 PreviewMenuShell.displayName = 'PreviewMenuShell'
 
+export const PreviewRail = ({
+  heading,
+  sections,
+  activeId,
+  onActive,
+  onNavigate,
+  loading = false,
+  emptyText,
+}: {
+  heading: string
+  sections: PreviewSection[]
+  activeId: string | null
+  onActive: (id: string) => void
+  onNavigate: () => void
+  loading?: boolean
+  emptyText?: string
+}) => {
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const radius = useMotionValue(120)
+  const background = useMotionTemplate`radial-gradient(${radius}px circle at ${mouseX}px ${mouseY}px, var(--spotlight-color) 0%, transparent 65%)`
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    mouseX.set(event.clientX - bounds.left)
+    mouseY.set(event.clientY - bounds.top)
+    radius.set(Math.hypot(bounds.width, bounds.height) / 2.5)
+  }
+
+  const railRef = useRef<HTMLDivElement>(null)
+  const [indicator, setIndicator] = useState<{
+    top: number
+    height: number
+  } | null>(null)
+  const measureIndicator = useCallback(() => {
+    const rail = railRef.current
+    const activeRow = rail?.querySelector<HTMLElement>(
+      '[data-section-active="true"]',
+    )
+    if (!rail || !activeRow) {
+      setIndicator(null)
+      return
+    }
+    const railBox = rail.getBoundingClientRect()
+    const rowBox = activeRow.getBoundingClientRect()
+    const inset = 8
+    setIndicator({
+      top: rowBox.top - railBox.top + inset,
+      height: Math.max(rowBox.height - inset * 2, 8),
+    })
+  }, [])
+  useLayoutEffect(() => {
+    measureIndicator()
+  }, [activeId, sections, measureIndicator])
+
+  return (
+    <div
+      ref={railRef}
+      className="group relative border-b border-zinc-900/10 py-3 [--spotlight-color:oklch(var(--a)_/_0.12)] dark:border-zinc-100/10 sm:border-b-0"
+      onMouseMove={handleMouseMove}
+    >
+      {/*
+        The column rule is drawn as its own 1px element rather than a right
+        border. The active marker below sits on the exact same right-0/w-px box,
+        so the accent line always lands on the divider instead of next to it.
+      */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 hidden w-px bg-zinc-900/10 dark:bg-zinc-100/10 sm:block"
+      />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <m.div
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{ background }}
+          aria-hidden="true"
+        />
+      </div>
+      {indicator && (
+        <m.span
+          aria-hidden
+          className="pointer-events-none absolute right-0 z-10 w-px bg-gradient-to-b from-accent/0 via-accent/70 to-accent/0"
+          initial={false}
+          animate={{ top: indicator.top, height: indicator.height }}
+          transition={{
+            type: 'spring',
+            stiffness: 680,
+            damping: 32,
+            mass: 0.35,
+          }}
+        />
+      )}
+      <div className="relative">
+        <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">{heading}</div>
+        <div
+          className="max-h-[22rem] overflow-x-hidden overflow-y-auto"
+          onScroll={measureIndicator}
+        >
+          {sections.length === 0 && loading ? (
+            <SectionSkeleton />
+          ) : sections.length === 0 ? (
+            <p className="px-5 py-4 text-sm text-zinc-400">{emptyText}</p>
+          ) : (
+            <ul>
+              {sections.map((section) => (
+                <li key={section.id}>
+                  <SectionRow
+                    section={section}
+                    active={section.id === activeId}
+                    onActivate={() => onActive(section.id)}
+                    onNavigate={onNavigate}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const SectionRow = ({
   section,
   active,
@@ -255,24 +388,22 @@ const SectionRow = ({
   <Link
     href={section.href}
     role="menuitem"
+    data-section-active={active ? 'true' : undefined}
     className={clsxm(
-      'relative flex items-center justify-between gap-4 px-5 py-3 text-sm transition-colors',
+      'group/section relative flex items-center justify-between gap-3 px-5 py-3 text-sm transition-colors',
       active
-        ? 'bg-accent/5 text-zinc-900 dark:text-zinc-50'
-        : 'text-zinc-500 hover:bg-accent/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200',
+        ? 'text-accent'
+        : 'text-zinc-800 hover:text-accent/80 dark:text-zinc-200',
     )}
     onMouseEnter={onActivate}
     onFocus={onActivate}
     onClick={onNavigate}
   >
-    {active && (
-      <span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-accent" />
-    )}
-    <span className="min-w-0 truncate">{section.title}</span>
+    <span className="preview-section-title min-w-0 truncate">
+      {section.title}
+    </span>
     {typeof section.count === 'number' && (
-      <span className="shrink-0 tabular-nums text-accent/80">
-        {section.count}
-      </span>
+      <span className="shrink-0 tabular-nums">{section.count}</span>
     )}
   </Link>
 )
@@ -311,6 +442,10 @@ export const EntryList = ({
     { length: previewRowCount },
     (_, index) => items[index] ?? null,
   )
+  const lastRealIndex = rows.reduce(
+    (last, row, index) => (row ? index : last),
+    -1,
+  )
   if (rows.every((row) => !row)) {
     return <p className="px-5 py-6 text-sm text-zinc-400">{emptyText}</p>
   }
@@ -318,7 +453,7 @@ export const EntryList = ({
     <AnimatePresence mode="wait" initial={false}>
       <m.ul
         key={listKey}
-        className="max-h-[22rem] overflow-y-auto"
+        className="relative max-h-[22rem] overflow-x-hidden overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -326,26 +461,13 @@ export const EntryList = ({
       >
         {rows.map((item, index) =>
           item ? (
-            <li key={item.id}>
-              <Link
-                href={item.href}
-                role="menuitem"
-                title={item.title}
-                className="flex min-w-0 items-baseline gap-3 px-5 py-2 text-sm leading-5 text-zinc-700 transition-colors hover:bg-accent/5 hover:text-accent dark:text-zinc-200"
-                onClick={onNavigate}
-              >
-                {item.created && (
-                  <span className="w-12 shrink-0 text-xs tabular-nums text-zinc-400">
-                    {formatCategoryPreviewDate(item.created)}
-                  </span>
-                )}
-                <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                {item.meta && (
-                  <span className="shrink-0 text-xs tracking-wide text-zinc-400">
-                    {item.meta}
-                  </span>
-                )}
-              </Link>
+            <li key={item.id} className="relative">
+              <EntryNode first={index === 0} last={index === lastRealIndex} />
+              <PreviewEntryLink
+                item={item}
+                listKey={listKey}
+                onNavigate={onNavigate}
+              />
             </li>
           ) : (
             <li key={`${listKey}-empty-${index}`} aria-hidden className="h-9" />
@@ -356,6 +478,82 @@ export const EntryList = ({
   )
 }
 
+const EntryNode = ({ first, last }: { first: boolean; last: boolean }) => (
+  <>
+    {!(first && last) && (
+      <span
+        aria-hidden
+        className={clsxm(
+          'pointer-events-none absolute left-[1.15rem] w-0.5 -translate-x-1/2 bg-accent',
+          first ? 'bottom-0 top-1/2' : last ? 'top-0 bottom-1/2' : 'inset-y-0',
+        )}
+      />
+    )}
+    <span
+      aria-hidden
+      className="pointer-events-none absolute left-[1.15rem] top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
+    />
+  </>
+)
+
+const highlightTransition = {
+  layout: { type: 'spring' as const, stiffness: 680, damping: 32, mass: 0.35 },
+  opacity: { duration: 0.12 },
+  scale: { type: 'spring' as const, stiffness: 680, damping: 32, mass: 0.35 },
+}
+
+const PreviewEntryLink = ({
+  item,
+  listKey,
+  onNavigate,
+}: {
+  item: PreviewEntry
+  listKey: string
+  onNavigate: () => void
+}) => {
+  const [hover, setHover] = useState(false)
+  return (
+    <Link
+      href={item.href}
+      role="menuitem"
+      title={item.title}
+      className="relative isolate flex min-w-0 items-center gap-3 py-2 pl-8 pr-4 text-sm leading-5 text-zinc-700 dark:text-zinc-200"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      onClick={onNavigate}
+    >
+      <AnimatePresence>
+        {hover && (
+          <m.span
+            layout
+            layoutId={`preview-entry-hover-${listKey}`}
+            initial={{ opacity: 0.2, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={highlightTransition}
+            style={{ zIndex: 0 }}
+            className="pointer-events-none absolute inset-y-1.5 left-7 right-3 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
+          />
+        )}
+      </AnimatePresence>
+      {item.created && (
+        <span className="relative z-10 w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
+          {formatCategoryPreviewDate(item.created)}
+        </span>
+      )}
+      <span className="relative z-10 min-w-0 flex-1 whitespace-normal break-words">
+        {item.title}
+      </span>
+      {item.meta && (
+        <span className="relative z-10 shrink-0 self-center text-xs tracking-wide text-zinc-400">
+          {item.meta}
+        </span>
+      )}
+    </Link>
+  )
+}
 const EntrySlots = () => (
   <div className="px-5 py-2">
     {Array.from({ length: previewRowCount }, (_, index) => (
@@ -403,31 +601,16 @@ const EmbeddedBody = ({
   onClose: () => void
 }) => (
   <>
-    <div className="grid grid-cols-1 sm:grid-cols-[13rem_minmax(0,1fr)]">
-      <div className="border-b border-zinc-900/10 py-3 dark:border-zinc-100/10 sm:border-b-0 sm:border-r">
-        <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">
-          {sectionHeading}
-        </div>
-        <div className="max-h-[22rem] overflow-y-auto">
-          {sections.length === 0 && status === 'loading' ? (
-            <SectionSkeleton />
-          ) : sections.length === 0 ? (
-            <p className="px-5 py-4 text-sm text-zinc-400">
-              {emptySectionText}
-            </p>
-          ) : (
-            sections.map((section) => (
-              <SectionRow
-                key={section.id}
-                section={section}
-                active={section.id === resolvedActiveId}
-                onActivate={() => onActive(section.id)}
-                onNavigate={onClose}
-              />
-            ))
-          )}
-        </div>
-      </div>
+    <div className="grid w-max" style={previewGridStyle}>
+      <PreviewRail
+        heading={sectionHeading}
+        sections={sections}
+        activeId={resolvedActiveId}
+        onActive={onActive}
+        onNavigate={onClose}
+        loading={status === 'loading'}
+        emptyText={emptySectionText}
+      />
       <div className="min-w-0 py-3">
         <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">
           {recentHeading}

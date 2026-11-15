@@ -59,6 +59,29 @@
     }
   }
 
+
+  /* Same growing accent underline as the recent-posts timeline links. */
+  .preview-section-title {
+    background-image: linear-gradient(
+      theme(colors.accent),
+      theme(colors.accent)
+    );
+    background-size: 0% 1.5px;
+    background-repeat: no-repeat;
+    background-position: left 1.2em;
+    transition:
+      background-size 500ms ease,
+      text-shadow 500ms ease;
+  }
+
+  .group\/section:hover .preview-section-title {
+    background-size: 100% 1.5px;
+    text-shadow:
+      0.05em 0 theme(colors.base-100),
+      -0.05em 0 theme(colors.base-100);
+    transition-duration: 250ms;
+  }
+
   .shiro-timeline {
     position: relative;
 
