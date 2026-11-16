@@ -6,7 +6,10 @@ import Link from 'next/link'
 import { memo, useCallback, useState } from 'react'
 
 import { EmptyIcon } from '~/components/icons/empty'
-import { HoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
+import {
+  ArticleHoverHighlight,
+  HoverHighlight,
+} from '~/components/modules/post/PostItemHoverOverlay'
 import { FABPortable } from '~/components/ui/fab'
 import { Loading } from '~/components/ui/loading'
 import { useModalStack } from '~/components/ui/modal'
@@ -127,10 +130,10 @@ const TagPostRow = ({
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
     >
-      <HoverHighlight
+      <ArticleHoverHighlight
         layoutId="tag-post-highlight"
         active={active}
-        className="inset-0 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
+        className="inset-0 z-0 rounded-xl"
       />
       <Link
         onClick={onOpen}

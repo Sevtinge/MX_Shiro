@@ -16,8 +16,10 @@ import {
   useState,
 } from 'react'
 
+import { ArticleHoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
 import { RootPortal } from '~/components/ui/portal'
 import { microReboundPreset } from '~/constants/spring'
+import { useResetHover } from '~/hooks/common/use-reset-hover'
 import { clsxm } from '~/lib/helper'
 
 import { useNavPreview } from './nav-preview-context'
@@ -436,7 +438,8 @@ export const EntryList = ({
 }) => {
   const listRef = useRef<HTMLUListElement>(null)
   const [maxHeight, setMaxHeight] = useState<number>()
-  const scrollable = status !== 'loading' && status !== 'error' && items.length > 0
+  const scrollable =
+    status !== 'loading' && status !== 'error' && items.length > 0
 
   useLayoutEffect(() => {
     if (!scrollable || items.length <= previewRowCount) {
@@ -468,6 +471,7 @@ export const EntryList = ({
   return (
     <AnimatePresence mode="wait" initial={false}>
       <m.ul
+        layoutScroll
         ref={listRef}
         key={listKey}
         className="relative overflow-y-auto overflow-x-hidden overscroll-y-contain"
@@ -530,6 +534,7 @@ const PreviewEntryLink = ({
   onNavigate: () => void
 }) => {
   const [hover, setHover] = useState(false)
+  useResetHover(setHover)
   return (
     <Link
       href={item.href}
@@ -542,20 +547,12 @@ const PreviewEntryLink = ({
       onBlur={() => setHover(false)}
       onClick={onNavigate}
     >
-      <AnimatePresence>
-        {hover && (
-          <m.span
-            layout
-            layoutId={`preview-entry-hover-${listKey}`}
-            initial={{ opacity: 0.2, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={highlightTransition}
-            style={{ zIndex: 0 }}
-            className="pointer-events-none absolute inset-y-1.5 left-7 right-3 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
-          />
-        )}
-      </AnimatePresence>
+      <ArticleHoverHighlight
+        layoutId={`preview-entry-hover-${listKey}`}
+        active={hover}
+        transition={highlightTransition}
+        className="inset-y-1.5 left-7 right-3 z-0 rounded-xl"
+      />
       {item.created && (
         <span className="relative z-10 w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
           {formatCategoryPreviewDate(item.created)}

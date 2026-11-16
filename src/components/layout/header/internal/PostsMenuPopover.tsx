@@ -1,7 +1,7 @@
 'use client'
 
 import type { CategoryModel } from '@mx-space/api-client'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { AnimatePresence, m } from 'motion/react'
 import Link from 'next/link'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -11,13 +11,13 @@ import { microReboundPreset } from '~/constants/spring'
 import { apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
-import { queryClient } from '~/providers/root/react-query-provider'
 
 import type { IHeaderMenu } from '../config'
 import { useNavPreview } from './nav-preview-context'
 import { loadCategoryPreviewPosts } from './post-preview'
 import { previewGridStyle } from './preview-layout'
 import { EntryList, PreviewRail } from './PreviewMenuShell'
+import { selectVisibleCategories } from './published-preview'
 
 const panelWidth = 720
 const noCategories: CategoryModel[] = []
@@ -41,28 +41,42 @@ export const PostsMenuPopover: Component<{
 }> = memo(({ children, subMenu, embedded = false }) => {
   const categories = usePreviewCategories()
   const navPreview = useNavPreview()
+  const [menuOpen, setMenuOpen] = useState(embedded)
+  const previewOpen = embedded || menuOpen
+  const categoryQueries = useQueries({
+    queries: categories.map((category) => ({
+      queryKey: ['header-category-posts', category.slug],
+      queryFn: () => loadCategoryPreviewPosts(category.slug),
+      enabled: previewOpen,
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    })),
+  })
+  const categoriesLoading =
+    previewOpen && categoryQueries.some((query) => query.isLoading)
+  const visibleCategories = selectVisibleCategories(categories, categoryQueries)
   const dismiss = () => {
-    setOpen(false)
+    setMenuOpen(false)
     if (embedded) navPreview?.close()
   }
   const triggerRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [open, setOpen] = useState(embedded)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [position, setPosition] = useState({
     top: 0,
     left: 0,
     width: panelWidth,
   })
-  const resolvedActiveSlug = categories.some(
+  const resolvedActiveSlug = visibleCategories.some(
     (category) => category.slug === activeSlug,
   )
     ? activeSlug
-    : (categories[0]?.slug ?? null)
+    : (visibleCategories[0]?.slug ?? null)
   const activeCategory =
-    categories.find((category) => category.slug === resolvedActiveSlug) ?? null
-  const total = categories.reduce(
-    (sum, category) => sum + (category.count || 0),
+    visibleCategories.find((category) => category.slug === resolvedActiveSlug) ??
+    null
+  const total = visibleCategories.reduce(
+    (sum, category) => sum + (category.visibleCount ?? 0),
     0,
   )
 
@@ -93,36 +107,26 @@ export const PostsMenuPopover: Component<{
   const show = useCallback(() => {
     cancelClose()
     updatePosition()
-    setOpen(true)
+    setMenuOpen(true)
   }, [cancelClose, updatePosition])
 
   useEffect(() => cancelClose, [cancelClose])
   useEffect(() => {
-    if (!embedded && !open) return
+    if (!embedded && !menuOpen) return
     window.addEventListener('resize', updatePosition)
     window.addEventListener('scroll', updatePosition, true)
     return () => {
       window.removeEventListener('resize', updatePosition)
       window.removeEventListener('scroll', updatePosition, true)
     }
-  }, [open, updatePosition])
-  useEffect(() => {
-    if (!embedded && !open) return
-    for (const category of categories) {
-      void queryClient.prefetchQuery({
-        queryKey: ['header-category-posts', category.slug],
-        queryFn: () => loadCategoryPreviewPosts(category.slug),
-        staleTime: 5 * 60 * 1000,
-      })
-    }
-  }, [categories, embedded, open])
-
+  }, [menuOpen, updatePosition])
   if (!embedded && !subMenu?.length && categories.length === 0) return children
 
   if (embedded) {
     return (
       <PostsPreviewBody
-        categories={categories}
+        categories={visibleCategories}
+        categoriesLoading={categoriesLoading}
         resolvedActiveSlug={resolvedActiveSlug}
         setActiveSlug={setActiveSlug}
         activeCategory={activeCategory}
@@ -146,7 +150,7 @@ export const PostsMenuPopover: Component<{
       </div>
       <RootPortal>
         <AnimatePresence>
-          {open && categories.length > 0 && (
+          {menuOpen && categories.length > 0 && (
             <m.div
               role="menu"
               aria-label="文稿分类"
@@ -171,25 +175,28 @@ export const PostsMenuPopover: Component<{
               onBlurCapture={closeSoon}
               onKeyDown={(event) => {
                 if (event.key === 'Escape') {
-                  setOpen(false)
+                  setMenuOpen(false)
                   triggerRef.current?.querySelector('a')?.focus()
                 }
                 if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+                if (visibleCategories.length === 0) return
                 event.preventDefault()
-                const index = categories.findIndex(
+                const index = visibleCategories.findIndex(
                   (category) => category.slug === resolvedActiveSlug,
                 )
                 const next =
                   event.key === 'ArrowDown'
-                    ? categories[(index + 1) % categories.length]
-                    : categories[
-                        (index - 1 + categories.length) % categories.length
+                    ? visibleCategories[(index + 1) % visibleCategories.length]
+                    : visibleCategories[
+                        (index - 1 + visibleCategories.length) %
+                          visibleCategories.length
                       ]
                 if (next) setActiveSlug(next.slug)
               }}
             >
               <PostsPreviewBody
-                categories={categories}
+                categories={visibleCategories}
+                categoriesLoading={categoriesLoading}
                 resolvedActiveSlug={resolvedActiveSlug}
                 setActiveSlug={setActiveSlug}
                 activeCategory={activeCategory}
@@ -242,13 +249,15 @@ const RecentPosts = ({
 
 const PostsPreviewBody = ({
   categories,
+  categoriesLoading,
   resolvedActiveSlug,
   setActiveSlug,
   activeCategory,
   total,
   dismiss,
 }: {
-  categories: CategoryModel[]
+  categories: Array<CategoryModel & { visibleCount: number | null }>
+  categoriesLoading: boolean
   resolvedActiveSlug: string | null
   setActiveSlug: (slug: string) => void
   activeCategory: CategoryModel | null
@@ -263,11 +272,13 @@ const PostsPreviewBody = ({
           id: category.slug,
           title: category.name,
           href: `/categories/${category.slug}`,
-          count: category.count || 0,
+          count: category.visibleCount ?? undefined,
         }))}
         activeId={resolvedActiveSlug}
         onActive={setActiveSlug}
         onNavigate={dismiss}
+        loading={categoriesLoading && categories.length === 0}
+        emptyText="没有可显示的分类"
       />
       <div className="min-w-0 py-3">
         <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">

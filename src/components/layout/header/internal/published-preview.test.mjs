@@ -4,6 +4,7 @@ import { test } from 'node:test'
 import {
   filterToPublishedIds,
   isPublishedPreviewItem,
+  selectVisibleCategories,
 } from './published-preview.ts'
 
 test('keeps published items and items with no publish flag', () => {
@@ -40,5 +41,20 @@ test('category previews keep only ids from the published list', () => {
   assert.deepEqual(
     filterToPublishedIds(rows, new Set(['live'])).map((row) => row.slug),
     ['3'],
+  )
+})
+
+test('hides categories with no visible posts and ignores the raw count', () => {
+  const categories = [
+    { slug: 'default', name: '默认分类', count: 1 },
+    { slug: 'tech', name: '技术', count: 4 },
+  ]
+  const visible = selectVisibleCategories(categories, [
+    { data: [] },
+    { data: [{}, {}, {}] },
+  ])
+  assert.deepEqual(
+    visible.map((category) => [category.slug, category.visibleCount]),
+    [['tech', 3]],
   )
 })

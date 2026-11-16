@@ -8,6 +8,7 @@ import {
   useMotionTemplate,
   useMotionValue,
 } from 'motion/react'
+import type { ComponentProps } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useResetHover } from '~/hooks/common/use-reset-hover'
@@ -24,12 +25,14 @@ export const HoverHighlight = ({
   className,
   transition,
   fade = false,
+  shrink = true,
 }: {
   layoutId?: string
   active: boolean
   className?: string
   transition?: Transition
   fade?: boolean
+  shrink?: boolean
 }) => {
   return (
     <AnimatePresence>
@@ -37,10 +40,38 @@ export const HoverHighlight = ({
         <m.div
           layout={fade ? false : true}
           layoutId={fade ? undefined : layoutId}
-          initial={fade ? { opacity: 0 } : highlightMotion.initial}
-          animate={fade ? { opacity: 1 } : highlightMotion.animate}
-          exit={fade ? { opacity: 0 } : highlightMotion.exit}
-          transition={fade ? { duration: 0.18 } : transition}
+          initial={
+            fade
+              ? { opacity: 0 }
+              : { ...highlightMotion.initial, scale: shrink ? 0.95 : 1 }
+          }
+          animate={
+            fade
+              ? { opacity: 1 }
+              : shrink
+                ? highlightMotion.animate
+                : { opacity: 1, scale: [1, 1.035, 1] }
+          }
+          exit={
+            fade
+              ? { opacity: 0 }
+              : { ...highlightMotion.exit, scale: shrink ? 0.95 : 1 }
+          }
+          transition={
+            fade
+              ? { duration: 0.18 }
+              : shrink
+                ? transition
+                : {
+                    ...transition,
+                    scale: {
+                      type: 'tween',
+                      duration: 0.32,
+                      times: [0, 0.4, 1],
+                      ease: 'easeOut',
+                    },
+                  }
+          }
           data-hover-highlight=""
           className={clsx('pointer-events-none absolute', className)}
         />
@@ -48,6 +79,21 @@ export const HoverHighlight = ({
     </AnimatePresence>
   )
 }
+
+export const ArticleHoverHighlight = ({
+  className,
+  ...props
+}: Omit<ComponentProps<typeof HoverHighlight>, 'fade' | 'shrink'>) => (
+  <HoverHighlight
+    {...props}
+    shrink={false}
+    className={clsx(
+      // An opaque, preblended tint keeps overlapping crossfade layers the same color.
+      'bg-[color-mix(in_srgb,oklch(var(--a))_10%,oklch(var(--b1)))] dark:bg-neutral-800',
+      className,
+    )}
+  />
+)
 
 export const PostItemHoverOverlay = () => {
   const [mouseEnter, setMouseEnter] = useState(false)
@@ -84,10 +130,10 @@ export const PostItemHoverOverlay = () => {
         }}
       />
 
-      <HoverHighlight
+      <ArticleHoverHighlight
         layoutId="post-item-hover-overlay"
         active={mouseEnter}
-        className="inset-0 z-[-1] rounded-2xl bg-accent/10 dark:bg-neutral-800 lg:-left-8 lg:-right-8"
+        className="inset-0 z-[-1] rounded-2xl lg:-left-8 lg:-right-8"
       />
     </>
   )

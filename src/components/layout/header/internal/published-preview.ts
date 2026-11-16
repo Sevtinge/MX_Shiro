@@ -38,3 +38,20 @@ export const filterToPublishedIds = <T extends { id?: string }>(
     (item) =>
       !!item.id && publishedIds.has(item.id) && isPublishedPreviewItem(item),
   )
+
+export const selectVisibleCategories = <T extends { slug: string }>(
+  categories: T[],
+  results: Array<{
+    isLoading?: boolean
+    isError?: boolean
+    data?: { length: number } | null
+  }>,
+) =>
+  categories.flatMap((category, index) => {
+    const query = results[index]
+    if (!query || query.isLoading) return []
+    if (query.isError) return [{ ...category, visibleCount: null as number | null }]
+    const visibleCount = query.data?.length ?? 0
+    if (visibleCount === 0) return []
+    return [{ ...category, visibleCount }]
+  })

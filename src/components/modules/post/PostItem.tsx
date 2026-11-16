@@ -28,6 +28,7 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
       data-post-card=""
       className={clsx(
         'relative flex flex-col py-8 focus-visible:!shadow-none',
+        !isPinned && 'px-8 lg:px-0',
         isPinned && [
           'group isolate my-4 overflow-hidden rounded-2xl border border-accent/15 bg-accent/5 shadow-sm',
           'transition-[transform,box-shadow,border-color] duration-300 ease-out',

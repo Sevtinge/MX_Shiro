@@ -1,12 +1,8 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { selectAtom } from 'jotai/utils'
-import type {TargetAndTransition} from 'motion/react';
-import {
-  m,
-  useAnimationControls,
-  useDragControls
-} from 'motion/react'
+import type { TargetAndTransition } from 'motion/react'
+import { m, useAnimationControls, useDragControls } from 'motion/react'
 import type { SyntheticEvent } from 'react'
 import {
   createElement,
@@ -289,9 +285,12 @@ export const ModalInternal: Component<{
                 </div>
                 <Divider className="my-2 shrink-0 border-zinc-900/10 dark:border-zinc-100/10" />
 
-                <div className="min-h-0 shrink grow overflow-auto px-4 py-2">
+                <m.div
+                  layoutScroll
+                  className="min-h-0 shrink grow overflow-auto px-4 py-2"
+                >
                   {finalChildren}
-                </div>
+                </m.div>
               </m.div>
             </div>
           </Dialog.Content>

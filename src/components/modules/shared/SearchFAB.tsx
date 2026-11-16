@@ -19,7 +19,7 @@ import {
 import { useIsLogged } from '~/atoms/hooks'
 import { searchPanelOpenAtom } from '~/atoms/search-panel'
 import { EmptyIcon } from '~/components/icons/empty'
-import { HoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
+import { ArticleHoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
 import type { SearchListType } from '~/components/modules/shared/search-results'
 import {
   mapAlgoliaPayload,
@@ -160,10 +160,7 @@ const SearchPanelImpl = () => {
 
       switch (e.key) {
         case 'Enter': {
-          $.children
-            .item(currentSelect)
-            ?.querySelector('a')
-            ?.click()
+          $.children.item(currentSelect)?.querySelector('a')?.click()
 
           break
         }
@@ -228,7 +225,7 @@ const SearchPanelImpl = () => {
         }}
       />
       <div />
-      <div className="relative h-0 shrink grow overflow-auto">
+      <m.div layoutScroll className="relative h-0 shrink grow overflow-auto">
         <ul className="h-full px-2 py-4" ref={listRef}>
           {data.length === 0 && !isLoading ? (
             <div className="flex h-full items-center justify-center">
@@ -259,7 +256,7 @@ const SearchPanelImpl = () => {
             </div>
           )}
         </ul>
-      </div>
+      </m.div>
 
       {isLogged && (
         <div className="flex shrink-0 items-center px-4 py-2">
@@ -308,11 +305,11 @@ const SearchItem = memo(function Item({
         })
       }}
     >
-      <HoverHighlight
+      <ArticleHoverHighlight
         layoutId="search-result-highlight"
         active={isSelect}
         transition={searchHighlightTransition}
-        className="inset-1.5 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
+        className="inset-1.5 z-0 rounded-xl"
       />
       <Link
         href={item.url}
