@@ -11,12 +11,15 @@ const isExplicitDraft = (value: unknown) =>
 const isExplicitPublished = (value: unknown) =>
   value === true || value === 1 || publishedStatuses.has(normalized(value))
 
-export const isPublishedPreviewItem = (item: {
+type PreviewPublishState = {
   isPublished?: boolean | number | string | null
   status?: string | number | null
-}) => {
-  if (isExplicitDraft(item.isPublished)) return false
-  if (isExplicitPublished(item.isPublished)) return true
-  if (item.status == null || item.status === '') return true
-  return !isExplicitDraft(item.status)
+}
+
+export const isPublishedPreviewItem = (item: object) => {
+  const entry = item as PreviewPublishState
+  if (isExplicitDraft(entry.isPublished)) return false
+  if (isExplicitPublished(entry.isPublished)) return true
+  if (entry.status == null || entry.status === '') return true
+  return !isExplicitDraft(entry.status)
 }
