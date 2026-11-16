@@ -25,6 +25,7 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
   return (
     <Link
       href={postLink}
+      data-post-card=""
       className={clsx(
         'relative flex flex-col py-8 focus-visible:!shadow-none',
         isPinned && [

@@ -17,8 +17,14 @@ import {
 } from 'react'
 
 import { useIsLogged } from '~/atoms/hooks'
+import { searchPanelOpenAtom } from '~/atoms/search-panel'
 import { EmptyIcon } from '~/components/icons/empty'
 import { HoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
+import type { SearchListType } from '~/components/modules/shared/search-results'
+import {
+  mapAlgoliaPayload,
+  mapDatabaseSearch,
+} from '~/components/modules/shared/search-results'
 import { MotionButtonBase } from '~/components/ui/button'
 import { FABPortable } from '~/components/ui/fab'
 import { FloatPopover } from '~/components/ui/float-popover'
@@ -30,7 +36,7 @@ import { noopArr } from '~/lib/noop'
 import { apiClient } from '~/lib/request'
 import { jotaiStore } from '~/lib/store'
 
-const searchPanelOpenAtom = atom(false)
+let algoliaSearchEnabled: boolean | null = null
 const isComposingAtom = atom(false)
 export const SearchFAB = () => {
   const isClient = useIsClient()
@@ -99,12 +105,6 @@ const SearchPanel = () => {
   )
 }
 
-type SearchListType = {
-  title: string
-  subtitle?: string
-  url: string
-  id: string
-}
 const currentSelectAtom = atom(0)
 
 const SearchPanelImpl = () => {
@@ -113,63 +113,41 @@ const SearchPanelImpl = () => {
   const setCurrentSelect = useSetAtom(currentSelectAtom)
   const debouncedKeyword = useDebounceValue(keyword, 360)
 
+  useEffect(() => {
+    setCurrentSelect(0)
+  }, [debouncedKeyword, setCurrentSelect])
+
   const {
     data: _data,
     isLoading,
     isFetching,
   } = useQuery({
     queryKey: ['search', debouncedKeyword],
-    queryFn: ({ queryKey }) => {
-      const [, keyword] = queryKey
-      if (!keyword) {
-        return
-      }
-      return apiClient.search.proxy('algolia').get({
-        params: {
-          keyword,
-        },
-      })
-    },
-    select: useCallback(
-      (data: any) => {
-        if (!data?.data) {
-          return
-        }
+    enabled: debouncedKeyword.trim().length > 0,
+    queryFn: async ({ queryKey }) => {
+      const term = String(queryKey[1] ?? '').trim()
+      if (!term) return []
 
-        const _list: SearchListType[] = data?.data.map((item: any) => {
-          switch (item.type) {
-            case 'post': {
-              return {
-                title: item.title,
-                subtitle: item.category.name,
-                id: item.id,
-                url: `/posts/${item.category.slug}/${item.slug}`,
-              }
-            }
-            case 'note': {
-              return {
-                title: item.title,
-                subtitle: '手记',
-                id: item.id,
-                url: `/notes/${item.nid}`,
-              }
-            }
-            case 'page': {
-              return {
-                title: item.title,
-                subtitle: '页面',
-                id: item.id,
-                url: `/${item.slug}`,
-              }
-            }
+      if (algoliaSearchEnabled !== false) {
+        try {
+          const algolia = await apiClient.search.searchByAlgolia(term)
+          const mapped = mapAlgoliaPayload(algolia)
+          if (mapped) {
+            algoliaSearchEnabled = true
+            return mapped
           }
-        })
-        setCurrentSelect(0)
+        } catch {
+          // This deployment does not expose Algolia search.
+        }
+        algoliaSearchEnabled = false
+      }
 
-        return _list
-      },
-      [setCurrentSelect],
-    ),
+      const [posts, notes] = await Promise.all([
+        apiClient.search.search('post', term).catch(() => null),
+        apiClient.search.search('note', term).catch(() => null),
+      ])
+      return mapDatabaseSearch(posts, notes)
+    },
   })
   const data = _data || noopArr
   const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = useCallback(
@@ -182,11 +160,10 @@ const SearchPanelImpl = () => {
 
       switch (e.key) {
         case 'Enter': {
-          ;(
-            ($.children.item(currentSelect) as HTMLLIElement).children.item(
-              0,
-            ) as HTMLLinkElement
-          )?.click()
+          $.children
+            .item(currentSelect)
+            ?.querySelector('a')
+            ?.click()
 
           break
         }
@@ -231,7 +208,7 @@ const SearchPanelImpl = () => {
       <input
         autoFocus
         className="w-full shrink-0 border-b border-zinc-900/10 bg-transparent px-5 py-4 text-base text-zinc-800 outline-none placeholder:text-zinc-400 dark:border-zinc-100/10 dark:text-zinc-100"
-        placeholder="搜索文稿、手记…"
+        placeholder="搜索"
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         onCompositionStart={() => {
@@ -352,7 +329,7 @@ const SearchItem = memo(function Item({
         layoutId="search-result-highlight"
         active={isSelect}
         transition={searchHighlightTransition}
-        className="inset-x-1.5 inset-y-1.5 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
+        className="inset-1.5 z-0 rounded-xl bg-accent/10 dark:bg-neutral-800"
       />
       <Link
         href={item.url}

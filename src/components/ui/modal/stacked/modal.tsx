@@ -192,7 +192,11 @@ export const ModalInternal: Component<{
               }, 1000)
             }
           }}
-          content={finalChildren}
+          content={
+            <div data-window-blocked={isTop ? undefined : ''}>
+              {finalChildren}
+            </div>
+          }
         />
       </Wrapper>
     )
@@ -205,9 +209,10 @@ export const ModalInternal: Component<{
           <Dialog.Portal>
             <Dialog.Content asChild>
               <div
+                data-window-blocked={isTop ? undefined : ''}
                 className={clsxm(
                   'fixed inset-0 z-20 overflow-auto',
-                  currentIsClosing
+                  !isTop || currentIsClosing
                     ? '!pointer-events-none'
                     : 'pointer-events-auto',
 
@@ -234,9 +239,10 @@ export const ModalInternal: Component<{
           <Dialog.Content asChild>
             <div
               ref={edgeElementRef}
+              data-window-blocked={isTop ? undefined : ''}
               className={clsxm(
                 'center fixed inset-0 z-20 flex',
-                currentIsClosing
+                !isTop || currentIsClosing
                   ? '!pointer-events-none'
                   : 'pointer-events-auto',
                 modalContainerClassName,

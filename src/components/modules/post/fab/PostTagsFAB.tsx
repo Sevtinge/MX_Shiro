@@ -10,6 +10,7 @@ import { HoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
 import { FABPortable } from '~/components/ui/fab'
 import { Loading } from '~/components/ui/loading'
 import { useModalStack } from '~/components/ui/modal'
+import { useResetHover } from '~/hooks/common/use-reset-hover'
 import { apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 
@@ -72,6 +73,7 @@ const TagInternal = memo(function TagInternal(
   const { count, name } = props
 
   const [active, setActive] = useState(false)
+  useResetHover(setActive)
 
   return (
     <button
@@ -118,6 +120,7 @@ const TagPostRow = ({
   onOpen: () => void
 }) => {
   const [active, setActive] = useState(false)
+  useResetHover(setActive)
   return (
     <li
       className="relative"

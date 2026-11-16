@@ -4,6 +4,7 @@ import { LazyMotion } from 'motion/react'
 import { ThemeProvider } from 'next-themes'
 import type { JSX, PropsWithChildren } from 'react'
 
+import { ForegroundPointerGuard } from '~/components/common/ForegroundPointerGuard'
 import { InertialWheelScroll } from '~/components/common/InertialWheelScroll'
 import { PeekPortal } from '~/components/modules/peek/PeekPortal'
 import { ModalStackProvider } from '~/components/ui/modal'
@@ -46,6 +47,7 @@ export function WebAppProviders({ children }: PropsWithChildren) {
 
       <SocketContainer />
       <ModalStackProvider key="modalStackProvider" />
+      <ForegroundPointerGuard />
       <EventProvider key="viewportProvider" />
       <PageScrollInfoProvider key="PageScrollInfoProvider" />
       <InertialWheelScroll />
@@ -67,6 +69,7 @@ export function DashboardAppProviders({ children }: PropsWithChildren) {
       {children}
 
       <ModalStackProvider key="modalStackProvider" />
+      <ForegroundPointerGuard />
       <EventProvider key="viewportProvider" />
       <PeekPortal />
       <Toaster />

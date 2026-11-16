@@ -1,0 +1,21 @@
+/* While a modal, sheet, or search window is open, hover under it stays hidden
+   even if the pointer never left the article that was hovered before. */
+html[data-foreground-window] [data-theme] [data-hover-highlight],
+[data-window-blocked] [data-hover-highlight] {
+  display: none !important;
+}
+
+html[data-foreground-window] [data-theme] [data-pinned-glow],
+[data-window-blocked] [data-pinned-glow] {
+  opacity: 0 !important;
+}
+
+html[data-foreground-window] [data-theme] [data-post-card],
+[data-window-blocked] [data-post-card] {
+  transform: none !important;
+}
+
+[data-window-blocked],
+[data-window-blocked] * {
+  pointer-events: none !important;
+}

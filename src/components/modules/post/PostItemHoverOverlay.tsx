@@ -10,6 +10,8 @@ import {
 } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
+import { useResetHover } from '~/hooks/common/use-reset-hover'
+
 const highlightMotion = {
   initial: { opacity: 0.2, scale: 0.95 },
   animate: { opacity: 1, scale: 1 },
@@ -39,6 +41,7 @@ export const HoverHighlight = ({
           animate={fade ? { opacity: 1 } : highlightMotion.animate}
           exit={fade ? { opacity: 0 } : highlightMotion.exit}
           transition={fade ? { duration: 0.18 } : transition}
+          data-hover-highlight=""
           className={clsx('pointer-events-none absolute', className)}
         />
       )}
@@ -49,6 +52,7 @@ export const HoverHighlight = ({
 export const PostItemHoverOverlay = () => {
   const [mouseEnter, setMouseEnter] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  useResetHover(setMouseEnter)
   useEffect(() => {
     const $ref = ref.current
     if (!$ref) return
@@ -112,6 +116,7 @@ export const PinnedPostGlow = () => {
     <m.div
       ref={ref}
       aria-hidden
+      data-pinned-glow=""
       className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-500 [--spotlight-color:oklch(var(--a)/0.1)] group-hover:opacity-100"
       style={{ background }}
     />
