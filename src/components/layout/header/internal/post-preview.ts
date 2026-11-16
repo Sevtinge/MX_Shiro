@@ -62,7 +62,7 @@ async function fetchPublishedPostIds() {
   const ids = new Set<string>()
   for (let page = 1; page <= 20; page += 1) {
     const result = await apiClient.post.getList(page, 50, {
-      select: ['id', 'isPublished'],
+      select: ['id'],
     })
     const rows = (result.data ?? []) as Array<{ id?: string }>
     for (const row of rows) {
