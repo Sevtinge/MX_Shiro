@@ -1,4 +1,9 @@
 /* Block the page under an open window without touching portaled modals or search. */
+html[data-foreground-window],
+html[data-foreground-window] body {
+  overscroll-behavior: none;
+}
+
 html[data-foreground-window] [data-page-shell],
 html[data-foreground-window] [data-page-shell] * {
   pointer-events: none !important;
