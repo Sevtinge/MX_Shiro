@@ -225,8 +225,11 @@ const SearchPanelImpl = () => {
         }}
       />
       <div />
-      <m.div layoutScroll className="relative h-0 shrink grow overflow-auto">
-        <ul className="h-full px-2 py-4" ref={listRef}>
+      <m.div
+        layoutScroll
+        className="relative h-0 shrink grow overflow-x-hidden overflow-y-auto overscroll-y-contain"
+      >
+        <ul className="relative isolate h-full px-4 py-4" ref={listRef}>
           {data.length === 0 && !isLoading ? (
             <div className="flex h-full items-center justify-center">
               <div className="flex flex-col items-center space-y-2">

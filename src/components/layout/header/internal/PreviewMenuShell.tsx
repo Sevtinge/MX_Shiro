@@ -474,7 +474,7 @@ export const EntryList = ({
         layoutScroll
         ref={listRef}
         key={listKey}
-        className="relative overflow-y-auto overflow-x-hidden overscroll-y-contain"
+        className="relative isolate overflow-y-auto overflow-x-hidden overscroll-y-contain"
         style={
           items.length > previewRowCount
             ? { maxHeight: maxHeight ?? '17.5rem' }
@@ -506,14 +506,14 @@ const EntryNode = ({ first, last }: { first: boolean; last: boolean }) => (
       <span
         aria-hidden
         className={clsxm(
-          'pointer-events-none absolute left-[1.15rem] w-0.5 -translate-x-1/2 bg-accent',
+          'pointer-events-none absolute left-[1.15rem] z-10 w-0.5 -translate-x-1/2 bg-accent',
           first ? 'bottom-0 top-1/2' : last ? 'top-0 bottom-1/2' : 'inset-y-0',
         )}
       />
     )}
     <span
       aria-hidden
-      className="pointer-events-none absolute left-[1.15rem] top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
+      className="pointer-events-none absolute left-[1.15rem] top-1/2 z-10 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
     />
   </>
 )
@@ -536,37 +536,39 @@ const PreviewEntryLink = ({
   const [hover, setHover] = useState(false)
   useResetHover(setHover)
   return (
-    <Link
-      href={item.href}
-      role="menuitem"
-      title={item.title}
-      className="relative isolate flex min-w-0 items-center gap-3 py-2 pl-8 pr-4 text-sm leading-5 text-zinc-700 dark:text-zinc-200"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onFocus={() => setHover(true)}
-      onBlur={() => setHover(false)}
-      onClick={onNavigate}
-    >
+    <div className="relative min-w-0">
       <ArticleHoverHighlight
         layoutId={`preview-entry-hover-${listKey}`}
         active={hover}
         transition={highlightTransition}
         className="inset-y-1.5 left-7 right-3 z-0 rounded-xl"
       />
-      {item.created && (
-        <span className="relative z-10 w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
-          {formatCategoryPreviewDate(item.created)}
+      <Link
+        href={item.href}
+        role="menuitem"
+        title={item.title}
+        className="relative z-10 flex min-w-0 items-center gap-3 py-2 pl-8 pr-4 text-sm leading-5 text-zinc-700 dark:text-zinc-200"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        onFocus={() => setHover(true)}
+        onBlur={() => setHover(false)}
+        onClick={onNavigate}
+      >
+        {item.created && (
+          <span className="w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
+            {formatCategoryPreviewDate(item.created)}
+          </span>
+        )}
+        <span className="min-w-0 flex-1 whitespace-normal break-words">
+          {item.title}
         </span>
-      )}
-      <span className="relative z-10 min-w-0 flex-1 whitespace-normal break-words">
-        {item.title}
-      </span>
-      {item.meta && (
-        <span className="relative z-10 shrink-0 self-center text-xs tracking-wide text-zinc-400">
-          {item.meta}
-        </span>
-      )}
-    </Link>
+        {item.meta && (
+          <span className="shrink-0 self-center text-xs tracking-wide text-zinc-400">
+            {item.meta}
+          </span>
+        )}
+      </Link>
+    </div>
   )
 }
 const EntrySlots = () => (

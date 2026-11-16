@@ -287,7 +287,7 @@ export const ModalInternal: Component<{
 
                 <m.div
                   layoutScroll
-                  className="min-h-0 shrink grow overflow-auto px-4 py-2"
+                  className="min-h-0 shrink grow overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-2"
                 >
                   {finalChildren}
                 </m.div>

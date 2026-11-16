@@ -178,7 +178,7 @@ export const TagDetailModal = (props: { name: string }) => {
   if (!data) return <EmptyIcon />
 
   return (
-    <ul className="space-y-1">
+    <ul className="relative isolate space-y-1 px-2">
       {data
         .sort(
           (a, b) =>
