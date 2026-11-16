@@ -2,7 +2,7 @@ import type { Placement, Strategy } from '@floating-ui/react-dom'
 import { flip, offset, shift, useFloating } from '@floating-ui/react-dom'
 import { AnimatePresence, m } from 'motion/react'
 import type { FC, PropsWithChildren } from 'react'
-import { cloneElement, useMemo, useRef, useState } from 'react'
+import { cloneElement, useEffect, useMemo, useRef, useState } from 'react'
 
 import { clsxm } from '~/lib/helper'
 
@@ -38,6 +38,25 @@ export const FloatPanel: FC<FloatPanelProps & PropsWithChildren> = (props) => {
   //   setPanelOpen(false)
   // })
 
+  useEffect(() => {
+    if (!panelOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (elements.floating?.contains(target)) return
+      if (elements.reference instanceof Node && elements.reference.contains(target)) return
+      if (
+        target instanceof Element &&
+        target.closest('[data-radix-popper-content-wrapper], [role="listbox"]')
+      ) {
+        return
+      }
+      setPanelOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [elements.floating, elements.reference, panelOpen])
+
   return (
     <>
       {useMemo(
@@ -60,11 +79,9 @@ export const FloatPanel: FC<FloatPanelProps & PropsWithChildren> = (props) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0.02, y: 10 }}
               className={clsxm(
-                '!shadow-out-sm focus:!shadow-out-sm focus-visible:!shadow-out-sm',
-                'rounded-xl border border-zinc-400/20 p-4 shadow-lg outline-none backdrop-blur-lg dark:border-zinc-500/30',
-                'bg-zinc-50/80 dark:bg-neutral-900/80',
-
-                'relative z-[2]',
+                'relative z-[99] overflow-hidden rounded-2xl p-4 outline-none',
+                'bg-gradient-to-b from-zinc-50/95 to-white/95 shadow-lg shadow-zinc-800/10 ring-1 ring-zinc-900/5 backdrop-blur-md',
+                'dark:from-zinc-900/95 dark:to-zinc-800/95 dark:shadow-zinc-950/30 dark:ring-zinc-100/10',
               )}
               ref={refs.setFloating}
               style={{

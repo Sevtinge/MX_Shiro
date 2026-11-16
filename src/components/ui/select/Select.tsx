@@ -43,9 +43,9 @@ export const Select = function Select<T>(
     >
       <SelectImpl.Trigger
         className={clsxm(
-          'border-border inline-flex w-full items-center justify-between gap-1 rounded-lg border',
-          'p-2',
-          'text-[0.9em]',
+          'inline-flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-zinc-800',
+          'bg-zinc-900/[0.03] ring-1 ring-zinc-900/10 transition-colors hover:ring-accent/40',
+          'dark:bg-white/[0.04] dark:text-zinc-100 dark:ring-white/10',
 
           className,
         )}
@@ -60,7 +60,7 @@ export const Select = function Select<T>(
         </SelectImpl.Icon>
       </SelectImpl.Trigger>
       <SelectImpl.Portal>
-        <SelectImpl.Content className="z-[990] rounded-lg border border-zinc-200 bg-zinc-50/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-900/60">
+        <SelectImpl.Content className="z-[990] overflow-hidden rounded-xl bg-gradient-to-b from-zinc-50/95 to-white/95 p-1 shadow-lg shadow-zinc-800/10 ring-1 ring-zinc-900/5 backdrop-blur-md dark:from-zinc-900/95 dark:to-zinc-800/95 dark:ring-zinc-100/10">
           <SelectImpl.ScrollUpButton className="flex h-3 items-center justify-center">
             <i className="i-mingcute-up-line" />
           </SelectImpl.ScrollUpButton>
@@ -91,7 +91,7 @@ const SelectItem = React.forwardRef<
 >(({ children, ...props }, forwardedRef) => {
   return (
     <SelectImpl.Item
-      className="flex cursor-auto items-center justify-between rounded-sm px-3 py-1 hover:bg-zinc-200 dark:hover:bg-neutral-800"
+      className="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm text-zinc-700 outline-none data-[highlighted]:bg-accent/10 data-[highlighted]:text-accent dark:text-zinc-200"
       {...props}
       ref={forwardedRef}
     >

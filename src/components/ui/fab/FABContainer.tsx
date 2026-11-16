@@ -75,10 +75,11 @@ export const FABPortable = typescriptHappyForwardRef(
       onClick: () => void
       onlyShowInMobile?: boolean
       show?: boolean
+      stackOrder?: number
     },
     ref: React.ForwardedRef<HTMLButtonElement>,
   ) => {
-    const { onClick, children, show = true } = props
+    const { onClick, children, show = true, stackOrder = 0 } = props
     const id = useId()
     const portalElement = useAtomValue(fabContainerElementAtom)
     const isMobile = useIsMobile()
@@ -87,7 +88,7 @@ export const FABPortable = typescriptHappyForwardRef(
 
     return (
       <RootPortal to={portalElement}>
-        <FABBase ref={ref} id={id} show={show} onClick={onClick}>
+        <FABBase ref={ref} id={id} show={show} onClick={onClick} style={{ order: stackOrder }}>
           {children}
         </FABBase>
       </RootPortal>

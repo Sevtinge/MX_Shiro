@@ -96,7 +96,7 @@ const ModalStack = () => {
 
   const isMobile = useIsMobile()
   return (
-    <AnimatePresence mode="popLayout">
+    <AnimatePresence mode="sync">
       {stack.map((item, index) => (
         <ModalInternal
           key={item.id}

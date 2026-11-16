@@ -84,16 +84,16 @@ export const PostsSortingFab = () => {
       placement="left-end"
       triggerElement={useMemo(
         () => (
-          <FABPortable onClick={Noop}>
+          <FABPortable stackOrder={-20} onClick={Noop}>
             <i className="i-mingcute-sort-descending-line" />
           </FABPortable>
         ),
         [],
       )}
     >
-      <main className="relative flex w-[300px] flex-col">
+      <main className="flex w-64 flex-col gap-4">
         <section>
-          <div className="ml-1">按...排序</div>
+          <div className="px-1 text-xs text-zinc-400">排序方式</div>
           <Select<SortBy>
             className="mt-2"
             values={sortByValues}
@@ -108,8 +108,8 @@ export const PostsSortingFab = () => {
           />
         </section>
 
-        <section className="mb-2 mt-4">
-          <div className="ml-1">顺序</div>
+        <section>
+          <div className="px-1 text-xs text-zinc-400">顺序</div>
           <Select<OrderBy>
             className={clsx(
               'mt-2',

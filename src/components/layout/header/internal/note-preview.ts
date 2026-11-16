@@ -1,6 +1,7 @@
 import { apiClient } from '~/lib/request'
 
 import type { PreviewEntry } from './PreviewMenuShell'
+import { isPublishedPreviewItem } from './published-preview'
 
 export type NoteMenuTopic = {
   name: string
@@ -12,6 +13,8 @@ type ListedNote = {
   nid?: number
   title: string
   created: string
+  isPublished?: boolean | null
+  status?: string | number | null
   topic?: { slug?: string; name?: string } | null
 }
 
@@ -32,8 +35,9 @@ export function groupNotes(
   notes: ListedNote[],
 ): NoteMenuData {
   const items: Record<string, PreviewEntry[]> = {}
+  const published = notes.filter(isPublishedPreviewItem)
   for (const topic of topics) {
-    items[topic.slug] = notes
+    items[topic.slug] = published
       .filter((note) => note.topic?.slug === topic.slug)
       .map(toEntry)
   }

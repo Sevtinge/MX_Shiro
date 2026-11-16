@@ -21,7 +21,7 @@ export const NoteFontSettingFab = () => {
     <>
       <FloatPanel
         triggerElement={
-          <FABPortable onClick={Noop}>
+          <FABPortable stackOrder={-20} onClick={Noop}>
             <i className="i-mingcute-font-line" />
           </FABPortable>
         }

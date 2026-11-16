@@ -1,5 +1,7 @@
 import { apiClient } from '~/lib/request'
 
+import { isPublishedPreviewItem } from './published-preview'
+
 export type TimelineMenuItem = {
   id: string
   title: string
@@ -14,6 +16,8 @@ type TopNote = {
   title: string
   created: string
   bookmark?: boolean
+  isPublished?: boolean | null
+  status?: string | number | null
 }
 
 type TopPost = {
@@ -22,6 +26,8 @@ type TopPost = {
   slug: string
   created: string
   category?: { slug?: string }
+  isPublished?: boolean | null
+  status?: string | number | null
 }
 
 export type TimelineMenuData = {
@@ -47,9 +53,11 @@ const postItem = (post: TopPost): TimelineMenuItem => ({
 })
 
 export async function loadTimelineMenu(): Promise<TimelineMenuData> {
-  const { notes, posts } = (await apiClient.aggregate.getTop(8)).$serialized
-  const listedNotes: TopNote[] = notes
-  const listedPosts: TopPost[] = posts
+  // Ask for more than the visible rows so drafts can be dropped without
+  // leaving the published list short.
+  const { notes, posts } = (await apiClient.aggregate.getTop(30)).$serialized
+  const listedNotes: TopNote[] = notes.filter(isPublishedPreviewItem)
+  const listedPosts: TopPost[] = posts.filter(isPublishedPreviewItem)
   return {
     note: listedNotes.map(noteItem),
     post: listedPosts.map(postItem),

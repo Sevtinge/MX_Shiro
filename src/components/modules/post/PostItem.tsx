@@ -7,7 +7,7 @@ import RemoveMarkdown from 'remove-markdown'
 import { PostPinIcon } from '~/components/modules/post/PostPinIcon'
 import { getPostPreviewImage } from '~/lib/post-preview-image'
 
-import { PostItemHoverOverlay } from './PostItemHoverOverlay'
+import { PinnedPostGlow, PostItemHoverOverlay } from './PostItemHoverOverlay'
 import { PostMetaBar } from './PostMetaBar'
 
 export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
@@ -27,51 +27,58 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
       href={postLink}
       className={clsx(
         'relative flex flex-col py-8 focus-visible:!shadow-none',
-        isPinned &&
-          'my-4 rounded-2xl border border-accent/15 bg-accent/5 px-5 shadow-sm dark:border-zinc-700/60 dark:bg-zinc-800/50 sm:px-8',
+        isPinned && [
+          'group isolate my-4 overflow-hidden rounded-2xl border border-accent/15 bg-accent/5 shadow-sm',
+          'transition-[transform,box-shadow,border-color] duration-300 ease-out',
+          'hover:-translate-y-1 hover:border-accent/35',
+          'px-8 lg:-mx-8',
+          'dark:border-zinc-700/60 dark:bg-zinc-800/50',
+        ],
       )}
     >
-      <PostItemHoverOverlay />
-      <h2 className="relative text-balance break-words text-2xl font-medium">
-        {isPinned && (
-          <span className="mr-3 inline-flex translate-y-[-2px] rounded-lg bg-accent/10 px-2 py-1 align-middle text-xs font-medium text-accent">
-            置顶
-          </span>
-        )}
-        {data.title}
-
-        <PostPinIcon pin={!!data.pin} id={data.id} />
-      </h2>
-      <div className="relative mt-8 space-y-2">
-        {!!data.summary && (
-          <p className="mb-4 break-all rounded-md px-4 py-2 text-sm leading-relaxed text-gray-900 ring-1 ring-accent/10 dark:text-zinc-50">
-            摘要： {data.summary}
-          </p>
-        )}
-        <div className="relative overflow-hidden text-justify">
-          {previewImage && (
-            <div
-              className={clsx(
-                'float-right mb-2 ml-3 size-[5.5rem] overflow-hidden rounded-md',
-                'bg-cover bg-center bg-no-repeat',
-              )}
-              style={{
-                backgroundImage: `url(${JSON.stringify(previewImage)})`,
-              }}
-            />
+      {isPinned ? <PinnedPostGlow /> : <PostItemHoverOverlay />}
+      <div className={isPinned ? 'relative z-10' : 'contents'}>
+        <h2 className="relative text-balance break-words text-2xl font-medium">
+          {isPinned && (
+            <span className="mr-3 inline-flex translate-y-[-2px] rounded-lg bg-accent/10 px-2 py-1 align-middle text-xs font-medium text-accent">
+              置顶
+            </span>
           )}
-          <p className="break-all leading-loose text-gray-800/90 dark:text-gray-200/90">
-            {displayText}
-          </p>
-        </div>
-      </div>
+          {data.title}
 
-      <div className="post-meta-bar mt-2 flex select-none flex-wrap items-center justify-end gap-4 text-base-content/60">
-        <PostMetaBar meta={data} />
-        <span className="flex shrink-0 select-none items-center space-x-1 text-right text-accent hover:text-accent [&>svg]:hover:ml-2">
-          <span>阅读全文</span>
-          <i className="i-mingcute-arrow-right-line text-lg transition-[margin]" />
-        </span>
+          <PostPinIcon pin={!!data.pin} id={data.id} />
+        </h2>
+        <div className="relative mt-8 space-y-2">
+          {!!data.summary && (
+            <p className="mb-4 break-all rounded-md px-4 py-2 text-sm leading-relaxed text-gray-900 ring-1 ring-accent/10 dark:text-zinc-50">
+              摘要： {data.summary}
+            </p>
+          )}
+          <div className="relative overflow-hidden text-justify">
+            {previewImage && (
+              <div
+                className={clsx(
+                  'float-right mb-2 ml-3 size-[5.5rem] overflow-hidden rounded-md',
+                  'bg-cover bg-center bg-no-repeat',
+                )}
+                style={{
+                  backgroundImage: `url(${JSON.stringify(previewImage)})`,
+                }}
+              />
+            )}
+            <p className="break-all leading-loose text-gray-800/90 dark:text-gray-200/90">
+              {displayText}
+            </p>
+          </div>
+        </div>
+
+        <div className="post-meta-bar mt-2 flex select-none flex-wrap items-center justify-end gap-4 text-base-content/60">
+          <PostMetaBar meta={data} />
+          <span className="flex shrink-0 select-none items-center space-x-1 text-right text-accent hover:text-accent [&>svg]:hover:ml-2">
+            <span>阅读全文</span>
+            <i className="i-mingcute-arrow-right-line text-lg transition-[margin]" />
+          </span>
+        </div>
       </div>
     </Link>
   )

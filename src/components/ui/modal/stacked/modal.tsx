@@ -108,11 +108,10 @@ export const ModalInternal: Component<{
   const animateController = useAnimationControls()
   const dragController = useDragControls()
   useEffect(() => {
-    if (isMobile) return
     nextFrame(() => {
       animateController.start(modalMontionConfig.animate as TargetAndTransition)
     })
-  }, [animateController, isMobile])
+  }, [animateController])
   const noticeModal = useCallback(() => {
     animateController
       .start({
@@ -275,14 +274,14 @@ export const ModalInternal: Component<{
                   className="relative flex items-center"
                   onPointerDown={(e) => dragController.start(e)}
                 >
-                  <Dialog.Title className="shrink-0 grow items-center px-4 py-1 text-lg font-medium">
+                  <Dialog.Title className="shrink-0 grow items-center px-4 py-1 text-base font-medium text-zinc-800 dark:text-zinc-100">
                     {title}
                   </Dialog.Title>
                   <Dialog.DialogClose className="p-2" onClick={close}>
                     <CloseIcon />
                   </Dialog.DialogClose>
                 </div>
-                <Divider className="my-2 shrink-0 border-slate-200 opacity-80 dark:border-neutral-800" />
+                <Divider className="my-2 shrink-0 border-zinc-900/10 dark:border-zinc-100/10" />
 
                 <div className="min-h-0 shrink grow overflow-auto px-4 py-2">
                   {finalChildren}

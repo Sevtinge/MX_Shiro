@@ -1,22 +1,24 @@
 'use client'
 
 import { AnimatePresence, m, useIsPresent } from 'motion/react'
+import type { ReactNode } from 'react'
 import {
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
-  useState,
-  type ReactNode,
+  useState
 } from 'react'
 
 import { RootPortal } from '~/components/ui/portal'
 
 import type { IHeaderMenu } from '../config'
+import type { NavPreviewKind } from './nav-preview-context'
+import { NavPreviewContext } from './nav-preview-context'
 import { NotesMenuPopover } from './NotesMenuPopover'
 import { PostsMenuPopover } from './PostsMenuPopover'
 import { TimelineMenuPopover } from './TimelineMenuPopover'
-import { NavPreviewContext, type NavPreviewKind } from './nav-preview-context'
+import { useLockPageScroll } from './use-lock-page-scroll'
 
 const moveTransition =
   'left .25s cubic-bezier(.4,0,.2,1), top .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1), height .25s cubic-bezier(.4,0,.2,1)'
@@ -141,9 +143,16 @@ export const NavPreviewProvider: Component = ({ children }) => {
   useEffect(() => cancelClose, [cancelClose])
   useEffect(() => {
     if (!active) return
-    const update = () => {
+    const update = (event: Event) => {
       const anchor = anchorRef.current
       if (!anchor) return
+      // Scrolling the article list should not reposition the panel.
+      if (
+        event.target instanceof Node &&
+        shellRef.current?.contains(event.target)
+      ) {
+        return
+      }
       setBox((current) => place(anchor, current.width))
     }
     window.addEventListener('resize', update)
@@ -154,6 +163,7 @@ export const NavPreviewProvider: Component = ({ children }) => {
     }
   }, [active])
 
+  useLockPageScroll(shellRef, !!active)
   const switching = wasOpen.current && !!active
 
   return (

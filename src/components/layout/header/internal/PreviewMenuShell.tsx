@@ -347,7 +347,7 @@ export const PreviewRail = ({
       <div className="relative">
         <div className="px-5 pb-2 pt-1 text-xs text-zinc-400">{heading}</div>
         <div
-          className="max-h-[22rem] overflow-x-hidden overflow-y-auto"
+          className="max-h-[22rem] overflow-y-auto overflow-x-hidden"
           onScroll={measureIndicator}
         >
           {sections.length === 0 && loading ? (
@@ -390,7 +390,7 @@ const SectionRow = ({
     role="menuitem"
     data-section-active={active ? 'true' : undefined}
     className={clsxm(
-      'group/section relative flex items-center justify-between gap-3 px-5 py-3 text-sm transition-colors',
+      'group/section relative flex items-center justify-between gap-3 px-5 py-2 text-sm transition-colors',
       active
         ? 'text-accent'
         : 'text-zinc-800 hover:text-accent/80 dark:text-zinc-200',
@@ -434,45 +434,63 @@ export const EntryList = ({
   errorText: string
   onNavigate: () => void
 }) => {
+  const listRef = useRef<HTMLUListElement>(null)
+  const [maxHeight, setMaxHeight] = useState<number>()
+  const scrollable = status !== 'loading' && status !== 'error' && items.length > 0
+
+  useLayoutEffect(() => {
+    if (!scrollable || items.length <= previewRowCount) {
+      setMaxHeight(undefined)
+      return
+    }
+    const list = listRef.current
+    if (!list) return
+    const measure = () => {
+      const row = list.querySelectorAll(':scope > li')[previewRowCount - 1] as
+        | HTMLElement
+        | undefined
+      const next = row ? row.offsetTop + row.offsetHeight : undefined
+      setMaxHeight((current) => (current === next ? current : next))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    for (const child of list.children) observer.observe(child)
+    return () => observer.disconnect()
+  }, [items, listKey, scrollable])
+
   if (status === 'loading') return <EntrySlots />
   if (status === 'error') {
     return <p className="px-5 py-6 text-sm text-zinc-400">{errorText}</p>
   }
-  const rows = Array.from(
-    { length: previewRowCount },
-    (_, index) => items[index] ?? null,
-  )
-  const lastRealIndex = rows.reduce(
-    (last, row, index) => (row ? index : last),
-    -1,
-  )
-  if (rows.every((row) => !row)) {
+  if (items.length === 0) {
     return <p className="px-5 py-6 text-sm text-zinc-400">{emptyText}</p>
   }
   return (
     <AnimatePresence mode="wait" initial={false}>
       <m.ul
+        ref={listRef}
         key={listKey}
-        className="relative max-h-[22rem] overflow-x-hidden overflow-y-auto"
+        className="relative overflow-y-auto overflow-x-hidden overscroll-y-contain"
+        style={
+          items.length > previewRowCount
+            ? { maxHeight: maxHeight ?? '17.5rem' }
+            : undefined
+        }
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.16 }}
       >
-        {rows.map((item, index) =>
-          item ? (
-            <li key={item.id} className="relative">
-              <EntryNode first={index === 0} last={index === lastRealIndex} />
-              <PreviewEntryLink
-                item={item}
-                listKey={listKey}
-                onNavigate={onNavigate}
-              />
-            </li>
-          ) : (
-            <li key={`${listKey}-empty-${index}`} aria-hidden className="h-9" />
-          ),
-        )}
+        {items.map((item, index) => (
+          <li key={item.id} className="relative">
+            <EntryNode first={index === 0} last={index === items.length - 1} />
+            <PreviewEntryLink
+              item={item}
+              listKey={listKey}
+              onNavigate={onNavigate}
+            />
+          </li>
+        ))}
       </m.ul>
     </AnimatePresence>
   )
