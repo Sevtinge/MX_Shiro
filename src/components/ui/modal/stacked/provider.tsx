@@ -106,13 +106,7 @@ const ModalStack = () => {
         />
       ))}
       {stack.length > 0 && forceOverlay && !isMobile && (
-        <ModalOverlay
-          zIndex={MODAL_STACK_Z_INDEX + stack.length - 1}
-          onClick={() => {
-            const top = stack.at(-1)
-            if (top?.clickOutsideToDismiss) actions.dismiss(top.id)
-          }}
-        />
+        <ModalOverlay zIndex={MODAL_STACK_Z_INDEX + stack.length - 1} />
       )}
     </AnimatePresence>
   )

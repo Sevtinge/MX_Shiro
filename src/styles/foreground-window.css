@@ -1,16 +1,20 @@
-/* While a modal, sheet, or search window is open, hover under it stays hidden
-   even if the pointer never left the article that was hovered before. */
-html[data-foreground-window] [data-theme] [data-hover-highlight],
+/* Block the page under an open window without touching portaled modals or search. */
+html[data-foreground-window] [data-page-shell],
+html[data-foreground-window] [data-page-shell] * {
+  pointer-events: none !important;
+}
+
+html[data-foreground-window] [data-page-shell] [data-hover-highlight],
 [data-window-blocked] [data-hover-highlight] {
   display: none !important;
 }
 
-html[data-foreground-window] [data-theme] [data-pinned-glow],
+html[data-foreground-window] [data-page-shell] [data-pinned-glow],
 [data-window-blocked] [data-pinned-glow] {
   opacity: 0 !important;
 }
 
-html[data-foreground-window] [data-theme] [data-post-card],
+html[data-foreground-window] [data-page-shell] [data-post-card],
 [data-window-blocked] [data-post-card] {
   transform: none !important;
 }

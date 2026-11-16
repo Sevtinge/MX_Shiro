@@ -6,7 +6,7 @@ export default () => {
   return (
     <html>
       <body className={`${sansFont.variable} m-0 h-full p-0 font-sans`}>
-        <div data-theme>
+        <div data-theme data-page-shell>
           <NotFound404>
             <StyledButton>
               <a href="/">返回首页</a>

@@ -15,14 +15,11 @@ export const ForegroundPointerGuard = () => {
 
   useEffect(() => {
     const root = document.documentElement
-    const page = document.querySelector('[data-theme]')
+    const page = document.querySelector('[data-page-shell]')
     root.toggleAttribute('data-foreground-window', open)
-    if (page instanceof HTMLElement) {
-      page.inert = open
+    if (page instanceof HTMLElement && page.contains(document.activeElement)) {
       const active = document.activeElement
-      if (open && active instanceof HTMLElement && page.contains(active)) {
-        active.blur()
-      }
+      if (open && active instanceof HTMLElement) active.blur()
     }
     window.dispatchEvent(new Event('foreground-hover-reset'))
   }, [open, modalCount, sheetCount, searchOpen])
