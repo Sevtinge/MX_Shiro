@@ -25,6 +25,11 @@ import { thinkingEnabled } from '~/constants/features'
 import { TrackerAction } from '~/constants/tracker'
 import { hideDeletedComment } from '~/lib/comment-visibility'
 import { isDev } from '~/lib/env'
+import {
+  hideCachedPublicPost,
+  refreshPublicContent,
+} from '~/lib/public-content-refresh'
+import { isPublished } from '~/lib/publication'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { toast } from '~/lib/toast'
 import {
@@ -46,6 +51,7 @@ import { EventTypes } from '~/types/events'
 import { WsEvent } from './util'
 
 const refreshContentQueries = () => {
+  void refreshPublicContent(queryClient)
   for (const queryKey of [['home'], ['home-activity-recent'], ['rooms']]) {
     queryClient.invalidateQueries({ queryKey })
   }
@@ -92,7 +98,10 @@ export const eventHandler = (
       const post = data as PostModel
       const currentData = getGlobalCurrentPostData()
 
+      if (!isPublished(post)) hideCachedPublicPost(queryClient, post.id)
       refreshContentQueries()
+      router?.refresh()
+      if (!isPublished(post)) break
       if (!currentData) break
       if (currentData.id !== post.id) {
         break
@@ -115,7 +124,10 @@ export const eventHandler = (
     }
 
     case EventTypes.POST_DELETE: {
+      if (typeof data?.id === 'string')
+        hideCachedPublicPost(queryClient, data.id)
       refreshContentQueries()
+      router?.refresh()
       const post = data as PostModel
       if (
         location.pathname ===
@@ -206,6 +218,8 @@ export const eventHandler = (
 
     case EventTypes.POST_CREATE: {
       refreshContentQueries()
+      router?.refresh()
+      if (!isPublished(data)) break
       const { title, category, slug } = data as PostModel
       toast.success(`有新的内容发布了：「${title}」`, {
         onClick: () => {

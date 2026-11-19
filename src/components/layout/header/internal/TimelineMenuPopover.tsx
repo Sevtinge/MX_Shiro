@@ -3,6 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 
+import { publicContentQueryOptions } from '~/lib/publication'
+
 import type { IHeaderMenu } from '../config'
 import { PreviewMenuShell } from './PreviewMenuShell'
 import { loadTimelineMenu } from './timeline-preview'
@@ -23,8 +25,7 @@ export const TimelineMenuPopover: Component<{
     queryKey: ['header-timeline-menu'],
     queryFn: loadTimelineMenu,
     enabled: embedded || open,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    ...publicContentQueryOptions,
   })
   const resolvedId = sections.some((section) => section.id === activeId)
     ? activeId
@@ -48,7 +49,7 @@ export const TimelineMenuPopover: Component<{
           ? 'loading'
           : isError
             ? 'error'
-            : items.length
+            : items.length > 0
               ? 'ready'
               : 'empty'
       }

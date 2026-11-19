@@ -7,6 +7,7 @@ import type { PropsWithChildren } from 'react'
 import PKG from '~/../package.json'
 import { Global } from '~/components/common/Global'
 import { HydrationEndDetector } from '~/components/common/HydrationEndDetector'
+import { SafeLineErrorProbe } from '~/components/common/SafeLineVerification'
 import { SyncServerTime } from '~/components/common/SyncServerTime'
 import { Root } from '~/components/layout/root/Root'
 import { AccentColorStyleInjector } from '~/components/modules/shared/AccentColorStyleInjector'
@@ -14,6 +15,7 @@ import { SearchPanelWithHotKey } from '~/components/modules/shared/SearchFAB'
 import { TocAutoScroll } from '~/components/modules/toc/TocAutoScroll'
 import { PreRenderError } from '~/lib/error-factory'
 import { sansFont, serifFont } from '~/lib/fonts'
+import { isSafeLineError } from '~/lib/safeline-challenge'
 import { AggregationProvider } from '~/providers/root/aggregation-data-provider'
 import { AppFeatureProvider } from '~/providers/root/app-feature-provider'
 import { ScriptInjectProvider } from '~/providers/root/script-inject-provider'
@@ -39,7 +41,11 @@ export function generateViewport(): Viewport {
 }
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  const fetchedData = await fetchAggregationData()
+  const fetchedData = await fetchAggregationData().catch((error) => {
+    if (isSafeLineError(error)) return null
+    throw error
+  })
+  if (!fetchedData) return { title: '请完成安全验证', robots: { index: false } }
 
   const {
     seo,
@@ -130,6 +136,7 @@ export default async function RootLayout(props: PropsWithChildren) {
         <body
           className={`${sansFont.variable} ${serifFont.variable} m-0 h-full p-0 font-sans`}
         >
+          <SafeLineErrorProbe />
           <div className="center flex h-screen">
             初始数据的获取失败，请检查 API
             服务器是否正常运行。接口请求错误信息：

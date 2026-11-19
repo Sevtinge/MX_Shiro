@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 
 import { useResetAutoSaverData } from '~/components/modules/dashboard/writing/BaseWritingProvider'
 import { cloneDeep } from '~/lib/lodash'
+import { getPublicPost } from '~/lib/public-posts'
+import { publicContentQueryOptions } from '~/lib/publication'
 import { apiClient } from '~/lib/request'
 import { toast } from '~/lib/toast'
 import type { PostDto } from '~/models/writing'
@@ -12,14 +14,13 @@ import { defineQuery } from '../helper'
 export const post = {
   bySlug: (category: string, slug: string) =>
     defineQuery({
+      ...publicContentQueryOptions,
       queryKey: ['post', category, slug],
 
       queryFn: async ({ queryKey }) => {
         const [, category, slug] = queryKey
 
-        const data = await apiClient.post.getPost(category, slug)
-
-        return data.$serialized
+        return getPublicPost(category, slug)
       },
     }),
 }

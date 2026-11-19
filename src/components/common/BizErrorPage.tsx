@@ -1,5 +1,7 @@
 import type { FC } from 'react'
 
+import { SafeLineRecovery } from './SafeLineVerification'
+
 export const BizErrorPage: FC<{
   bizMessage: string
   status: number
@@ -15,6 +17,7 @@ export const BizErrorPage: FC<{
           错误信息：<strong>{bizMessage}</strong>
         </p>
       </h2>
+      {status === 468 && <SafeLineRecovery autoStart />}
     </div>
   )
 }

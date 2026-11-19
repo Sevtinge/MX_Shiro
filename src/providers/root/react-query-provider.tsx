@@ -10,6 +10,7 @@ import type { PropsWithChildren } from 'react'
 import { useState } from 'react'
 
 import { isServerSide } from '~/lib/env'
+import { isVerificationFailure } from '~/lib/publication'
 
 const dbStore = isServerSide ? undefined : createStore('react-query', 'queries')
 
@@ -32,6 +33,8 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) =>
+        !isVerificationFailure(error) && failureCount < 3,
       refetchOnWindowFocus: false,
       refetchIntervalInBackground: false,
     },
@@ -48,6 +51,7 @@ declare module '@tanstack/react-query' {
 
 const persistOptions: Omit<PersistQueryClientOptions, 'queryClient'> = {
   persister: asyncStoragePersister,
+  buster: 'public-content-v2',
   maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
   dehydrateOptions: {
     shouldDehydrateQuery: (query) => {
@@ -85,6 +89,7 @@ export const getQueryClientForDashboard = () =>
         refetchIntervalInBackground: false,
         refetchOnMount: true,
         retry(failureCount, error) {
+          if (isVerificationFailure(error)) return false
           if (error instanceof RequestError && error.status === 401)
             return false
           return failureCount < 3

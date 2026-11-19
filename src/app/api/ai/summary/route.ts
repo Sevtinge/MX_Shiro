@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 
 import { API_URL } from '~/constants/env'
+import { getPublicPost } from '~/lib/public-posts'
 import { apiClient } from '~/lib/request'
 import type { ArticleDataType } from '~/types/api'
 
@@ -30,7 +31,7 @@ export const GET = async (req: NextRequest) => {
   switch (data.type) {
     case 'post': {
       const { category, slug } = data
-      const res = await apiClient.post.getPost(category, slug)
+      const res = await getPublicPost(category, slug)
       text = res.text
       modified = res.modified || res.created
       cid = res.id

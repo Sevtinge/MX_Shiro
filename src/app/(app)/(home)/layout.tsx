@@ -2,8 +2,8 @@ import { dehydrate } from '@tanstack/react-query'
 
 import { QueryHydrate } from '~/components/common/QueryHydrate'
 import { isShallowEqualArray } from '~/lib/lodash'
+import { getPublicTop } from '~/lib/public-posts'
 import { getQueryClient } from '~/lib/query-client.server'
-import { apiClient } from '~/lib/request'
 import { definePrerenderPage, requestErrorHandler } from '~/lib/request.server'
 
 import { queryKey } from './query'
@@ -17,7 +17,7 @@ export default definePrerenderPage()({
       .fetchQuery({
         queryKey,
         queryFn: async () => {
-          return (await apiClient.aggregate.getTop(5)).$serialized
+          return getPublicTop(5)
         },
       })
       .catch(requestErrorHandler)

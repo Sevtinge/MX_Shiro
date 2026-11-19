@@ -1,8 +1,9 @@
+import { filterPublicPostLinks } from '~/lib/public-posts'
 import { getQueryClient } from '~/lib/query-client.server'
-import { apiClient } from '~/lib/request'
+import { $publicFetch, publicApiClient as apiClient } from '~/lib/request'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 3600 // 1 hour
+export const revalidate = 0
 export const GET = async () => {
   const queryClient = getQueryClient()
 
@@ -10,7 +11,8 @@ export const GET = async () => {
     queryKey: ['sitemap'],
     queryFn: async () => {
       const path = apiClient.aggregate.proxy.sitemap.toString(true)
-      return fetch(path).then((res) => res.json())
+      const result = await $publicFetch<{ data: Array<{ url: string }> }>(path)
+      return { ...result, data: await filterPublicPostLinks(result.data) }
     },
   })
 
@@ -31,6 +33,7 @@ ${!!item.published_at && `<lastmod>${item.published_at || 'N/A'}</lastmod>`}
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml',
+      'Cache-Control': 'no-store',
     },
   })
 }

@@ -10,7 +10,9 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 import { thinkingEnabled } from '~/constants/features'
 import { softBouncePreset } from '~/constants/spring'
 import { filterDeletedCommentActivities } from '~/lib/activity-visibility'
-import { apiClient } from '~/lib/request'
+import { loadPublishedPostIds } from '~/lib/public-posts'
+import { publicContentQueryOptions } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 
 import { ActivityCard, iconClassName } from './ActivityCard'
 import type { ReactActivityType } from './types'
@@ -19,14 +21,27 @@ export const ActivityRecent = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['home-activity-recent'],
     queryFn: async () => {
-      return (await apiClient.activity.getRecentActivities()).$serialized
+      const [result, ids] = await Promise.all([
+        apiClient.activity.getRecentActivities(),
+        loadPublishedPostIds(),
+      ])
+      const activities = result.$serialized
+      return {
+        ...activities,
+        post: activities.post.filter((post) => ids.has(post.id)),
+        comment: activities.comment.filter(
+          (entry) =>
+            entry.type !== CollectionRefTypes.Post || ids.has(entry.id),
+        ),
+        like: activities.like.filter(
+          (entry) =>
+            entry.type !== CollectionRefTypes.Post || ids.has(entry.id),
+        ),
+      }
     },
     refetchOnMount: true,
     refetchInterval: 30_000,
-    refetchOnWindowFocus: 'always',
-    meta: {
-      persist: true,
-    },
+    ...publicContentQueryOptions,
   })
 
   const flatData = useMemo(() => {

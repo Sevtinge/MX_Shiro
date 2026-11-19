@@ -1,8 +1,10 @@
 'use client'
 
 import { domAnimation, LazyMotion } from 'motion/react'
+import { PublicEnvScript } from 'next-runtime-env'
 import { useEffect } from 'react'
 
+import { SafeLineErrorProbe } from '~/components/common/SafeLineVerification'
 // import { captureException } from '@sentry/nextjs'
 import { NormalContainer } from '~/components/layout/container/Normal'
 import { StyledButton } from '~/components/ui/button'
@@ -21,9 +23,11 @@ export default function GlobalError({
   return (
     <html>
       <head>
+        <PublicEnvScript />
         <title>禁止访问或者 API 服务出现问题</title>
       </head>
       <body>
+        <SafeLineErrorProbe />
         <NormalContainer>
           <h1 className="mb-4">禁止访问或者 API 服务出现问题</h1>
           <div className="flex justify-center">

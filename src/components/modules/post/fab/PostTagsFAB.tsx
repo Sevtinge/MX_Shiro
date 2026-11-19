@@ -14,7 +14,12 @@ import { FABPortable } from '~/components/ui/fab'
 import { Loading } from '~/components/ui/loading'
 import { useModalStack } from '~/components/ui/modal'
 import { useResetHover } from '~/hooks/common/use-reset-hover'
-import { apiClient } from '~/lib/request'
+import { loadPublishedPostIds } from '~/lib/public-posts'
+import {
+  filterPublishedPosts,
+  publicContentQueryOptions,
+} from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 
 const previewModalClassName =
@@ -42,6 +47,7 @@ export const PostTagsFAB = () => {
 const TagsModal = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['tags'],
+    ...publicContentQueryOptions,
     queryFn: async () => {
       return (await apiClient.category.getAllTags()).data
     },
@@ -143,7 +149,7 @@ const TagPostRow = ({
           category: item.category.slug,
           slug: item.slug,
         })}
-        className="relative z-10 flex items-center gap-3 rounded-xl px-2 py-2 text-sm text-zinc-700 dark:text-zinc-200"
+        className="relative z-10 flex items-center gap-3 rounded-xl p-2 text-sm text-zinc-700 dark:text-zinc-200"
       >
         <span className="w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
           {new Date(item.created)
@@ -165,9 +171,13 @@ export const TagDetailModal = (props: { name: string }) => {
     queryKey: [name, 'tag'],
     queryFn: async ({ queryKey }) => {
       const [tagName] = queryKey
-      return (await apiClient.category.getTagByName(tagName)).data
+      const [result, ids] = await Promise.all([
+        apiClient.category.getTagByName(tagName),
+        loadPublishedPostIds(),
+      ])
+      return filterPublishedPosts(result.data, ids)
     },
-    staleTime: 1000 * 60 * 60 * 24,
+    ...publicContentQueryOptions,
   })
   const { dismissAll } = useModalStack()
   if (isLoading)

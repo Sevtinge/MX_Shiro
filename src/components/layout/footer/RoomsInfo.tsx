@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query'
 
 import { PeekLink } from '~/components/modules/peek/PeekLink'
 import { NumberSmoothTransition } from '~/components/ui/number-transition/NumberSmoothTransition'
-import { apiClient } from '~/lib/request'
+import { loadPublishedPostIds } from '~/lib/public-posts'
+import { publicContentQueryOptions } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { getArticleRoomCount, isArticleRoomName } from '~/socket/rooms'
 
@@ -74,10 +76,24 @@ export const RoomsInfo = () => {
     queryKey: ['rooms'],
     refetchOnMount: true,
     refetchInterval: 5000,
-    staleTime: 1000 * 5,
+    ...publicContentQueryOptions,
     queryFn: async () => {
-      const res = await apiClient.activity.getRoomsInfo()
-      return normalizeRooms(res.$serialized)
+      const [res, ids] = await Promise.all([
+        apiClient.activity.getRoomsInfo(),
+        loadPublishedPostIds(),
+      ])
+      const payload = unwrapRooms(res.$serialized)
+      return normalizeRooms(
+        payload
+          ? {
+              ...payload,
+              objects: {
+                ...payload.objects,
+                posts: payload.objects.posts.filter((post) => ids.has(post.id)),
+              },
+            }
+          : res.$serialized,
+      )
     },
   })
 

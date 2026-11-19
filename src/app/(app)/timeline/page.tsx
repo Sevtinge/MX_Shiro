@@ -16,7 +16,8 @@ import { Divider } from '~/components/ui/divider'
 import { BackToTopFAB } from '~/components/ui/fab'
 import { TimelineList } from '~/components/ui/list/TimelineList'
 import { BottomToUpSoftScaleTransitionView } from '~/components/ui/transition'
-import { apiClient } from '~/lib/request'
+import { getPublicTimeline } from '~/lib/public-posts'
+import { publicContentQueryOptions } from '~/lib/publication'
 import { springScrollToElement } from '~/lib/scroller'
 
 enum ArticleType {
@@ -88,16 +89,15 @@ export default function TimelinePage() {
     enabled: false,
   })
   const { data, refetch } = useQuery<TimelineData>({
+    ...publicContentQueryOptions,
     queryKey: ['timeline', nextType, year],
     initialData,
     queryFn: async ({ queryKey }) => {
       const [, nextType, year] = queryKey as [string, TimelineType, string]
-      return await apiClient.aggregate
-        .getTimeline({
-          type: nextType,
-          year: +(year || 0) || undefined,
-        })
-        .then((res) => res.data)
+      return await getPublicTimeline({
+        type: nextType,
+        year: +(year || 0) || undefined,
+      })
     },
   })
 

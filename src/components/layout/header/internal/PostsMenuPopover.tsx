@@ -8,7 +8,8 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 
 import { RootPortal } from '~/components/ui/portal'
 import { microReboundPreset } from '~/constants/spring'
-import { apiClient } from '~/lib/request'
+import { publicContentQueryOptions } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
 
@@ -27,12 +28,10 @@ const usePreviewCategories = () => {
   const { data: fallbackCategories } = useQuery({
     queryKey: ['header-categories'],
     queryFn: async () => (await apiClient.category.getAllCategories()).data,
-    enabled: !categories?.length,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    initialData: categories ?? undefined,
+    ...publicContentQueryOptions,
   })
-  if (categories?.length) return categories
-  return fallbackCategories ?? noCategories
+  return fallbackCategories ?? categories ?? noCategories
 }
 
 export const PostsMenuPopover: Component<{
@@ -48,8 +47,7 @@ export const PostsMenuPopover: Component<{
       queryKey: ['header-category-posts', category.slug],
       queryFn: () => loadCategoryPreviewPosts(category.slug),
       enabled: previewOpen,
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
+      ...publicContentQueryOptions,
     })),
   })
   const categoriesLoading =
@@ -73,8 +71,9 @@ export const PostsMenuPopover: Component<{
     ? activeSlug
     : (visibleCategories[0]?.slug ?? null)
   const activeCategory =
-    visibleCategories.find((category) => category.slug === resolvedActiveSlug) ??
-    null
+    visibleCategories.find(
+      (category) => category.slug === resolvedActiveSlug,
+    ) ?? null
   const total = visibleCategories.reduce(
     (sum, category) => sum + (category.visibleCount ?? 0),
     0,
@@ -223,8 +222,7 @@ const RecentPosts = ({
     queryKey: ['header-category-posts', slug],
     queryFn: () => loadCategoryPreviewPosts(slug || ''),
     enabled: !!slug,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    ...publicContentQueryOptions,
   })
 
   return (

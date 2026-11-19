@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import removeMarkdown from 'remove-markdown'
 
 import { thinkingEnabled } from '~/constants/features'
-import { apiClient } from '~/lib/request'
+import { publicApiClient as apiClient } from '~/lib/request'
 
 export const dynamic = 'force-dynamic'
 

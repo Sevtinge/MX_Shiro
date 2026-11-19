@@ -1,6 +1,5 @@
 import type { AggregateRoot } from '@mx-space/api-client'
 import { simpleCamelcaseKeys } from '@mx-space/api-client'
-import { $fetch } from 'ofetch'
 import { cache } from 'react'
 
 import { appStaticConfig } from '~/app.static.config'
@@ -11,7 +10,7 @@ import {
 } from '~/lib/dev-aggregate-fallback'
 import { isDev } from '~/lib/env'
 import { getQueryClient } from '~/lib/query-client.server'
-import { apiClient } from '~/lib/request'
+import { $publicFetch as $fetch, apiClient } from '~/lib/request'
 
 const cacheTime = appStaticConfig.cache.enabled
   ? appStaticConfig.cache.ttl.aggregation
@@ -30,7 +29,6 @@ export const fetchAggregationData = cache(async () => {
           theme: 'shiro',
         },
         next: {
-          revalidate: cacheTime,
           tags: ['aggregate', 'shiro'],
         },
       }).then(simpleCamelcaseKeys)) as AggregateRoot & {

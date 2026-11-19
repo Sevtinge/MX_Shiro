@@ -13,6 +13,7 @@ import type { FC } from 'react'
 import uniqolor from 'uniqolor'
 
 import { API_URL } from '~/constants/env'
+import { isPublished } from '~/lib/publication'
 
 const apiClient = createClient(fetchAdaptor)(API_URL, {
   controllers: [
@@ -25,18 +26,15 @@ const apiClient = createClient(fetchAdaptor)(API_URL, {
 
 export const runtime = 'edge'
 
-export const revalidate = 86400 // 24 hours
+export const revalidate = 0
 
 const resOptions = {
   width: 1200,
   height: 600,
   emoji: 'twemoji',
   headers: new Headers([
-    [
-      'cache-control',
-      'max-age=3600, s-maxage=3600, stale-while-revalidate=600',
-    ],
-    ['cdn-cache-control', 'max-age=3600, stale-while-revalidate=600'],
+    ['cache-control', 'no-store'],
+    ['cdn-cache-control', 'no-store'],
   ]),
 } as ImageResponseOptions
 
@@ -153,9 +151,10 @@ export const GET = async (req: NextRequest) => {
     switch (data.type) {
       case 'post': {
         const { category, slug } = data
-        document = await apiClient.post
-          .getPost(category, slug)
-          .then((r) => ({ title: r.title, subtitle: r.category.name }))
+        const post = await apiClient.post.getPost(category, slug)
+        if (!isPublished(post))
+          return new Response('Not found', { status: 404 })
+        document = { title: post.title, subtitle: post.category.name }
         break
       }
 

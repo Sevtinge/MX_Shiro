@@ -7,6 +7,7 @@ import { deleteActivityPresence } from '~/atoms/activity'
 import { useSocketIsConnect, useSocketSessionId } from '~/atoms/hooks'
 import { usePageIsActive } from '~/hooks/common/use-is-active'
 import { useIsClient } from '~/hooks/common/use-is-client'
+import { refreshPublicContent } from '~/lib/public-content-refresh'
 import { queryClient } from '~/providers/root/react-query-provider'
 import { SocketEmitEnum } from '~/types/events'
 
@@ -31,6 +32,7 @@ const SocketContainerImpl: Component = () => {
     if (!socketIsConnected) return
     // Reconcile events that may have been missed while the gateway was offline.
     if (hasConnectedRef.current) {
+      void refreshPublicContent(queryClient)
       for (const queryKey of [
         ['home'],
         ['home-activity-recent'],

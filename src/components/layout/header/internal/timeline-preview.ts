@@ -1,4 +1,4 @@
-import { apiClient } from '~/lib/request'
+import { getPublicTop } from '~/lib/public-posts'
 
 import { isPublishedPreviewItem } from './published-preview'
 
@@ -55,7 +55,7 @@ const postItem = (post: TopPost): TimelineMenuItem => ({
 export async function loadTimelineMenu(): Promise<TimelineMenuData> {
   // Ask for more than the visible rows so drafts can be dropped without
   // leaving the published list short.
-  const { notes, posts } = (await apiClient.aggregate.getTop(30)).$serialized
+  const { notes, posts } = await getPublicTop(30)
   const listedNotes: TopNote[] = notes.filter(isPublishedPreviewItem)
   const listedPosts: TopPost[] = posts.filter(isPublishedPreviewItem)
   return {

@@ -3,6 +3,8 @@ import 'client-only'
 import { nanoid } from 'nanoid'
 import { createFetch } from 'ofetch'
 
+import { withSafeLineVerification } from '~/lib/safeline-challenge'
+
 import PKG from '../../../package.json'
 import { createApiClient, createFetchAdapter, getToken } from './shared'
 
@@ -19,49 +21,65 @@ if (isServerSide) {
     `NextJS/v${PKG.dependencies.next} ${PKG.name}/${PKG.version}`
 }
 
-export const $fetch = createFetch({
-  defaults: {
-    timeout: 8000,
-    // Reader sessions live on the API origin and require cross-origin cookies.
-    credentials: 'include',
-    // next: { revalidate: 3 },
-    headers: globalConfigureHeader,
-    onRequest(context) {
-      const token = getToken()
-      // eslint-disable-next-line prefer-destructuring
-      let headers: any = context.options.headers
-      if (headers && headers instanceof Headers) {
-        headers = Object.fromEntries(headers.entries())
-      } else {
-        headers = {}
-      }
+const createAppFetch = (publicOnly = false) =>
+  withSafeLineVerification(
+    createFetch({
+      defaults: {
+        timeout: 8000,
+        // Reader sessions live on the API origin and require cross-origin cookies.
+        credentials: 'include',
+        // next: { revalidate: 3 },
+        headers: globalConfigureHeader,
+        onRequest(context) {
+          const token = publicOnly ? null : getToken()
+          // eslint-disable-next-line prefer-destructuring
+          let headers: any = context.options.headers
+          if (headers && headers instanceof Headers) {
+            headers = Object.fromEntries(headers.entries())
+          } else {
+            headers = {}
+          }
 
-      if (token) {
-        headers.Authorization = `bearer ${token}`
-      }
+          if (token) {
+            headers.Authorization = `bearer ${token}`
+          }
 
-      headers['X-Session-Uuid'] =
-        globalThis?.sessionStorage?.getItem(uuidStorageKey) ?? uuid
+          headers['X-Session-Uuid'] =
+            globalThis?.sessionStorage?.getItem(uuidStorageKey) ?? uuid
 
-      context.options.params ??= {}
-      Object.assign(context.options.params, globalConfigureSearchParams)
-      if (context.options.params.token) {
-        context.options.cache = 'no-store'
-      }
-      if (isDev && isServerSide) {
-        console.info(`[Request]: ${context.request}`)
-      }
+          context.options.params ??= {}
+          if (!publicOnly)
+            Object.assign(context.options.params, globalConfigureSearchParams)
+          if (publicOnly) {
+            delete headers.Authorization
+            delete headers.authorization
+            context.options.cache = 'no-store'
+          }
+          if (context.options.params.token) {
+            context.options.cache = 'no-store'
+          }
+          if (isDev && isServerSide) {
+            console.info(`[Request]: ${context.request}`)
+          }
 
-      context.options.headers = headers
-    },
-    onResponse(context) {
-      // log response
-      if (isDev && isServerSide) {
-        console.info(`[Response]: ${context.request}`, context.response.status)
-      }
-    },
-  },
-})
+          context.options.headers = headers
+        },
+        onResponse(context) {
+          // log response
+          if (isDev && isServerSide) {
+            console.info(
+              `[Response]: ${context.request}`,
+              context.response.status,
+            )
+          }
+        },
+      },
+    }),
+  )
+
+export const $fetch = createAppFetch()
+export const $publicFetch = createAppFetch(true)
+export const publicApiClient = createApiClient(createFetchAdapter($publicFetch))
 
 export const apiClient = createApiClient(createFetchAdapter($fetch))
 export const attachFetchHeader = (key: string, value: string | null) => {

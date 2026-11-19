@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 import { cloneDeep } from '~/lib/lodash'
-import { apiClient } from '~/lib/request'
+import { publicContentQueryOptions } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { useAggregationSelector } from '~/providers/root/aggregation-data-provider'
 
 import { headerMenuConfig as baseHeaderMenuConfig } from '../config'
@@ -26,13 +27,10 @@ export const HeaderDataConfigureProvider: Component = ({ children }) => {
   const { data: fallbackCategories } = useQuery({
     queryKey: ['header-categories'],
     queryFn: async () => (await apiClient.category.getAllCategories()).data,
-    enabled: !categories?.length,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    initialData: categories ?? undefined,
+    ...publicContentQueryOptions,
   })
-  const resolvedCategories = categories?.length
-    ? categories
-    : fallbackCategories
+  const resolvedCategories = fallbackCategories ?? categories
   const [headerMenuConfig, setHeaderMenuConfig] = useState(baseHeaderMenuConfig)
 
   useEffect(() => {

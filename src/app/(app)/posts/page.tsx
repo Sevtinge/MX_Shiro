@@ -8,7 +8,8 @@ import { SearchFAB } from '~/components/modules/shared/SearchFAB'
 import { BackToTopFAB } from '~/components/ui/fab'
 import { BottomToUpTransitionView } from '~/components/ui/transition'
 import { OnlyDesktop } from '~/components/ui/viewport'
-import { apiClient } from '~/lib/request'
+import { isPublished } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { definePrerenderPage } from '~/lib/request.server'
 
 interface Props {
@@ -51,7 +52,12 @@ export default definePrerenderPage<Props>()({
       }
     }
 
-    return { ...result, featuredPosts, customSort: !!sortBy }
+    return {
+      ...result,
+      data: result.data.filter(isPublished),
+      featuredPosts: featuredPosts.filter(isPublished),
+      customSort: !!sortBy,
+    }
   },
   Component: async (props) => {
     const { params } = props

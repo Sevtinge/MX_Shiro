@@ -33,7 +33,9 @@ import useDebounceValue from '~/hooks/common/use-debounce-value'
 import { useIsClient } from '~/hooks/common/use-is-client'
 import { getToken } from '~/lib/cookie'
 import { noopArr } from '~/lib/noop'
-import { apiClient } from '~/lib/request'
+import { loadPublishedPostIds } from '~/lib/public-posts'
+import { publicContentQueryOptions } from '~/lib/publication'
+import { publicApiClient as apiClient } from '~/lib/request'
 import { jotaiStore } from '~/lib/store'
 
 let algoliaSearchEnabled: boolean | null = null
@@ -122,11 +124,18 @@ const SearchPanelImpl = () => {
     isLoading,
     isFetching,
   } = useQuery({
+    ...publicContentQueryOptions,
     queryKey: ['search', debouncedKeyword],
     enabled: debouncedKeyword.trim().length > 0,
     queryFn: async ({ queryKey }) => {
       const term = String(queryKey[1] ?? '').trim()
       if (!term) return []
+      const publishedIds = await loadPublishedPostIds()
+      const visible = (rows: SearchListType[]) =>
+        rows.filter(
+          (row) =>
+            !row.id.startsWith('post-') || publishedIds.has(row.id.slice(5)),
+        )
 
       if (algoliaSearchEnabled !== false) {
         try {
@@ -134,7 +143,7 @@ const SearchPanelImpl = () => {
           const mapped = mapAlgoliaPayload(algolia)
           if (mapped) {
             algoliaSearchEnabled = true
-            return mapped
+            return visible(mapped)
           }
         } catch {
           // This deployment does not expose Algolia search.
@@ -146,7 +155,7 @@ const SearchPanelImpl = () => {
         apiClient.search.search('post', term).catch(() => null),
         apiClient.search.search('note', term).catch(() => null),
       ])
-      return mapDatabaseSearch(posts, notes)
+      return visible(mapDatabaseSearch(posts, notes))
     },
   })
   const data = _data || noopArr
@@ -227,9 +236,9 @@ const SearchPanelImpl = () => {
       <div />
       <m.div
         layoutScroll
-        className="relative h-0 shrink grow overflow-x-hidden overflow-y-auto overscroll-y-contain"
+        className="relative h-0 shrink grow overflow-y-auto overflow-x-hidden overscroll-y-contain"
       >
-        <ul className="relative isolate h-full px-4 py-4" ref={listRef}>
+        <ul className="relative isolate h-full p-4" ref={listRef}>
           {data.length === 0 && !isLoading ? (
             <div className="flex h-full items-center justify-center">
               <div className="flex flex-col items-center space-y-2">

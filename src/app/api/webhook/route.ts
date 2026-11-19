@@ -4,6 +4,7 @@ import {
   InvalidSignatureError,
   readDataFromRequest,
 } from '@mx-space/webhook'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import type { NextRequest } from 'next/server'
 
 import { CacheKeyMap } from '~/constants/keys'
@@ -43,6 +44,8 @@ export const POST = async (nextreq: NextRequest) => {
       case BusinessEvents.POST_CREATE:
       case BusinessEvents.POST_UPDATE:
       case BusinessEvents.POST_DELETE: {
+        revalidateTag('aggregate')
+        revalidatePath('/', 'layout')
         await Promise.all([
           invalidateCacheWithPrefix(CacheKeyMap.PostList),
           invalidateCache(CacheKeyMap.AggregateTop),

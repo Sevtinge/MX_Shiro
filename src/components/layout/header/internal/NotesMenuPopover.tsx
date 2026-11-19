@@ -3,6 +3,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 
+import { publicContentQueryOptions } from '~/lib/publication'
+
 import type { IHeaderMenu } from '../config'
 import { loadNoteMenu } from './note-preview'
 import { PreviewMenuShell } from './PreviewMenuShell'
@@ -17,8 +19,7 @@ export const NotesMenuPopover: Component<{
     queryKey: ['header-note-menu'],
     queryFn: loadNoteMenu,
     enabled: embedded || open,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
+    ...publicContentQueryOptions,
   })
   const sections = (data?.topics ?? []).map((topic) => ({
     id: topic.slug,
@@ -46,7 +47,7 @@ export const NotesMenuPopover: Component<{
           ? 'loading'
           : isError
             ? 'error'
-            : items.length
+            : items.length > 0
               ? 'ready'
               : 'empty'
       }

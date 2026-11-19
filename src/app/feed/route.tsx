@@ -5,16 +5,17 @@ import RSS from 'rss'
 import xss from 'xss'
 
 import { CDN_HOST } from '~/app.static.config'
-import { thinkingEnabled } from '~/constants/features'
 import { ContainerRule as __ContainerRule } from '~/components/ui/markdown/parsers/container'
 import { InsertRule } from '~/components/ui/markdown/parsers/ins'
 import { MentionRule } from '~/components/ui/markdown/parsers/mention'
 import { SpoilerRule } from '~/components/ui/markdown/parsers/spoiler'
+import { thinkingEnabled } from '~/constants/features'
 import { get } from '~/lib/lodash'
-import { apiClient } from '~/lib/request'
+import { filterPublicPostLinks } from '~/lib/public-posts'
+import { publicApiClient as apiClient } from '~/lib/request'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 60
+export const revalidate = 0
 
 interface RSSProps {
   title: string
@@ -35,10 +36,11 @@ interface RSSProps {
 export async function GET() {
   const ReactDOM = (await import('react-dom/server')).default
 
-  const [{ author, data, url }, agg] = await Promise.all([
+  const [{ author, data: unfilteredData, url }, agg] = await Promise.all([
     apiClient.aggregate.proxy.feed.get<RSSProps>(),
     apiClient.aggregate.getAggregateData<AppThemeConfig>('shiro'),
   ])
+  const data = await filterPublicPostLinks(unfilteredData)
 
   const { title, description } = agg.seo
 
@@ -204,10 +206,10 @@ export async function GET() {
   return new Response(`${feed.xml()}`, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': `max-age=60, s-maxage=${revalidate}`,
-      'CDN-Cache-Control': `max-age=${revalidate}`,
-      'Cloudflare-CDN-Cache-Control': `max-age=${revalidate}`,
-      'Vercel-CDN-Cache-Control': `max-age=${revalidate}`,
+      'Cache-Control': 'no-store',
+      'CDN-Cache-Control': 'no-store',
+      'Cloudflare-CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store',
     },
   })
 }

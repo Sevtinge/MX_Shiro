@@ -4,8 +4,8 @@ import type { PropsWithChildren } from 'react'
 
 import { QueryHydrate } from '~/components/common/QueryHydrate'
 import { SearchFAB } from '~/components/modules/shared/SearchFAB'
+import { getPublicTimeline } from '~/lib/public-posts'
 import { getQueryClient } from '~/lib/query-client.server'
-import { apiClient } from '~/lib/request'
 import { definePrerenderPage } from '~/lib/request.server'
 
 export const metadata = {
@@ -26,12 +26,10 @@ export default definePrerenderPage<{
     await queryClient.fetchQuery({
       queryKey: ['timeline', nextType, year],
       queryFn: async () => {
-        return await apiClient.aggregate
-          .getTimeline({
-            type: nextType,
-            year: +(year || 0) || undefined,
-          })
-          .then((res) => res.data)
+        return await getPublicTimeline({
+          type: nextType,
+          year: +(year || 0) || undefined,
+        })
       },
     })
   },

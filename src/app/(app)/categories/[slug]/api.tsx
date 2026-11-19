@@ -1,12 +1,10 @@
 import { cache } from 'react'
 
 import { attachServerFetch } from '~/lib/attach-fetch'
-import { apiClient } from '~/lib/request'
+import { getPublicCategory } from '~/lib/public-posts'
 import { requestErrorHandler } from '~/lib/request.server'
 
 export const getData = cache(async (params: { slug: string }) => {
   attachServerFetch()
-  return await apiClient.category
-    .getCategoryByIdOrSlug(params.slug)
-    .catch(requestErrorHandler)
+  return await getPublicCategory(params.slug).catch(requestErrorHandler)
 })

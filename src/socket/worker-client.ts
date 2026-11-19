@@ -3,9 +3,13 @@ import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.
 
 import { getSocketWebSessionId } from '~/atoms/hooks'
 import { setSocketIsConnect } from '~/atoms/socket'
-import { GATEWAY_URL } from '~/constants/env'
+import { API_URL, GATEWAY_URL } from '~/constants/env'
 import { SocketConnectedEvent, SocketDisconnectedEvent } from '~/events'
 import { isDev, isServerSide } from '~/lib/env'
+import {
+  probeSafeLineStatus,
+  requestSafeLineVerification,
+} from '~/lib/safeline-challenge'
 import type { EventTypes, SocketEmitEnum } from '~/types/events'
 
 import { eventHandler } from './handler'
@@ -20,6 +24,8 @@ class SocketWorker {
   private router: AppRouterInstance
 
   private socket: WorkerSocket | null = null
+  private verificationPending = false
+  private lastVerificationCheck = 0
 
   worker: SharedWorker | null = null
 
@@ -58,6 +64,10 @@ class SocketWorker {
             type: 'pong',
           })
           console.info('[ws worker] pong')
+          break
+        }
+        case 'verification-check': {
+          void this.checkVerification()
           break
         }
         case 'connect': {
@@ -129,6 +139,25 @@ class SocketWorker {
       type: 'emit',
       payload: { type: event, payload },
     })
+  }
+
+  private async checkVerification() {
+    if (
+      this.verificationPending ||
+      Date.now() - this.lastVerificationCheck < 10_000
+    )
+      return
+    this.verificationPending = true
+    this.lastVerificationCheck = Date.now()
+    try {
+      if (!(await probeSafeLineStatus())) return
+      await requestSafeLineVerification(API_URL)
+      this.reconnect()
+    } catch {
+      /* The reader can cancel verification without a reconnect loop. */
+    } finally {
+      this.verificationPending = false
+    }
   }
 
   reconnect() {

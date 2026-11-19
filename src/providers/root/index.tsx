@@ -6,6 +6,7 @@ import type { JSX, PropsWithChildren } from 'react'
 
 import { ForegroundPointerGuard } from '~/components/common/ForegroundPointerGuard'
 import { InertialWheelScroll } from '~/components/common/InertialWheelScroll'
+import { SafeLineVerification } from '~/components/common/SafeLineVerification'
 import { PeekPortal } from '~/components/modules/peek/PeekPortal'
 import { ModalStackProvider } from '~/components/ui/modal'
 import { Toaster } from '~/components/ui/toast'
@@ -18,6 +19,7 @@ import { DebugProvider } from './debug-provider'
 import { EventProvider } from './event-provider'
 import { JotaiStoreProvider } from './jotai-provider'
 import { PageScrollInfoProvider } from './page-scroll-info-provider'
+import { PublicContentSync } from './public-content-provider'
 import {
   ReactQueryProvider,
   ReactQueryProviderForDashboard,
@@ -46,6 +48,8 @@ export function WebAppProviders({ children }: PropsWithChildren) {
       {children}
 
       <SocketContainer />
+      <PublicContentSync />
+      <SafeLineVerification />
       <ModalStackProvider key="modalStackProvider" />
       <ForegroundPointerGuard />
       <EventProvider key="viewportProvider" />
@@ -67,6 +71,7 @@ export function DashboardAppProviders({ children }: PropsWithChildren) {
   return (
     <ProviderComposer contexts={dashboardContexts}>
       {children}
+      <SafeLineVerification />
 
       <ModalStackProvider key="modalStackProvider" />
       <ForegroundPointerGuard />

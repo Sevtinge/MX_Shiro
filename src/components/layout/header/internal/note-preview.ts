@@ -1,4 +1,4 @@
-import { apiClient } from '~/lib/request'
+import { publicApiClient as apiClient } from '~/lib/request'
 
 import type { PreviewEntry } from './PreviewMenuShell'
 import { isPublishedPreviewItem } from './published-preview'

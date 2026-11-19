@@ -30,6 +30,10 @@ function setupIo(config: { url: string; socket_session_id: string }) {
   })
   if (!ws) return
 
+  ws.on('connect_error', () => {
+    boardcast({ type: 'verification-check' })
+  })
+
   ws.on('disconnect', () => {
     boardcast({
       type: 'disconnect',
