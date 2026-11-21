@@ -18,7 +18,7 @@ import { clsxm } from '~/lib/helper'
 import { estimateReadingMinutes } from '~/lib/reading-time'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 
-import { TagDetailModal } from './fab/PostTagsFAB'
+import { TagDetailModal, tagDetailModalOptions } from './fab/PostTagsFAB'
 
 export const PostMetaBar: Component<{
   meta: Partial<
@@ -96,11 +96,14 @@ export const PostMetaBar: Component<{
                   return (
                     <Fragment key={tag}>
                       <button
+                        type="button"
                         className="shiro-link--underline"
                         onClick={() =>
                           present({
+                            id: `post-tag-${tag}`,
                             content: () => <TagDetailModal name={tag} />,
-                            title: `Tag: ${tag}`,
+                            title: tag,
+                            ...tagDetailModalOptions,
                           })
                         }
                         key={tag}

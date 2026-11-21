@@ -1,6 +1,7 @@
 import { memo } from 'react'
 
 import { ErrorBoundary } from '~/components/common/ErrorBoundary'
+import { HeaderSearchButton } from '~/components/modules/shared/SearchFAB'
 import { OnlyMobile } from '~/components/ui/viewport/OnlyMobile'
 import { clsxm } from '~/lib/helper'
 
@@ -36,12 +37,13 @@ const MemoedHeader = memo(() => {
       <HeaderEntrance>
         <div
           className={clsxm(
-            'relative z-[1] mx-auto grid h-full min-h-0 max-w-7xl grid-cols-[4.5rem_auto_4.5rem] lg:px-8',
+            'relative z-[1] mx-auto grid h-full min-h-0 max-w-7xl grid-cols-[112px_minmax(0,1fr)_112px] lg:grid-cols-[4.5rem_auto_4.5rem] lg:px-8',
             styles['header--grid'],
           )}
         >
           <HeaderLeftButtonArea>
             <HeaderDrawerButton />
+            <HeaderSearchButton mobile />
           </HeaderLeftButtonArea>
 
           <HeaderLogoArea>
@@ -57,7 +59,7 @@ const MemoedHeader = memo(() => {
             <HeaderMeta />
           </HeaderCenterArea>
 
-          <div className="flex size-full items-center">
+          <div className="flex size-full items-center justify-end pr-4 lg:justify-start lg:pr-0">
             <UserAuth />
           </div>
         </div>

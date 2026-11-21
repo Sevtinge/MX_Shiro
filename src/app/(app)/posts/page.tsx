@@ -4,7 +4,6 @@ import { PostTagsFAB } from '~/components/modules/post/fab/PostTagsFAB'
 import { PostItem } from '~/components/modules/post/PostItem'
 import { PostPagination } from '~/components/modules/post/PostPagination'
 import { NothingFound } from '~/components/modules/shared/NothingFound'
-import { SearchFAB } from '~/components/modules/shared/SearchFAB'
 import { BackToTopFAB } from '~/components/ui/fab'
 import { BottomToUpTransitionView } from '~/components/ui/transition'
 import { OnlyDesktop } from '~/components/ui/viewport'
@@ -95,7 +94,6 @@ export default definePrerenderPage<Props>()({
 
         <PostsSortingFab />
         <PostTagsFAB />
-        <SearchFAB />
         <OnlyDesktop>
           <BackToTopFAB />
         </OnlyDesktop>

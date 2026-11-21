@@ -18,7 +18,7 @@ export const HeaderLogoArea: Component = ({ children }) => (
 export const HeaderLeftButtonArea: Component = ({ children }) => (
   <div
     className={clsxm(
-      'relative flex size-full items-center justify-center lg:hidden',
+      'relative flex size-full items-center gap-2 pl-4 lg:hidden',
     )}
   >
     {children}

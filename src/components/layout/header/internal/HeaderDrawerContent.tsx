@@ -1,6 +1,6 @@
 'use client'
 
-import { m } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 import Link from 'next/link'
 import { memo } from 'react'
 
@@ -12,6 +12,8 @@ import { useHeaderConfig } from './HeaderDataConfigureProvider'
 
 export const HeaderDrawerContent = () => {
   const { config } = useHeaderConfig()
+  const { isOpen } = useSheetContext()
+  const reducedMotion = useReducedMotion()
 
   return (
     <div className="scrollbar-none mt-12 max-h-[80dvh] w-[90vw] space-y-4 overflow-auto pb-24">
@@ -20,12 +22,16 @@ export const HeaderDrawerContent = () => {
 
         return (
           <m.section
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{
-              ...reboundPreset,
-              delay: index * 0.08,
+            initial={reducedMotion ? false : { y: 30, opacity: 0 }}
+            animate={{
+              y: isOpen || reducedMotion ? 0 : 16,
+              opacity: isOpen ? 1 : 0,
             }}
+            transition={
+              isOpen
+                ? { ...reboundPreset, delay: reducedMotion ? 0 : index * 0.08 }
+                : { duration: reducedMotion ? 0 : 0.16, ease: 'easeOut' }
+            }
             key={href}
           >
             <LinkInternal className="block" href={href}>

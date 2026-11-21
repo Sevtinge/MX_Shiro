@@ -10,8 +10,8 @@ export const HeaderActionButton = forwardRef<
     role="button"
     tabIndex={1}
     className={clsx(
-      'group size-10 rounded-full bg-base-100',
-      'px-3 text-sm ring-1 ring-zinc-900/5 transition dark:ring-white/10 dark:hover:ring-white/20',
+      'group size-[44px] touch-manipulation rounded-full bg-base-100 lg:size-10',
+      'px-3 text-[16px] ring-1 ring-zinc-900/5 transition lg:text-sm dark:ring-white/10 dark:hover:ring-white/20',
 
       'center flex',
     )}

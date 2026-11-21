@@ -2,7 +2,12 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { selectAtom } from 'jotai/utils'
 import type { TargetAndTransition } from 'motion/react'
-import { m, useAnimationControls, useDragControls } from 'motion/react'
+import {
+  m,
+  useAnimationControls,
+  useDragControls,
+  usePresence,
+} from 'motion/react'
 import type { SyntheticEvent } from 'react'
 import {
   createElement,
@@ -12,6 +17,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react'
 
 import { useIsMobile } from '~/atoms/hooks'
@@ -21,10 +27,9 @@ import { useEventCallback } from '~/hooks/common/use-event-callback'
 import { useIsUnMounted } from '~/hooks/common/use-is-unmounted'
 import { nextFrame, stopPropagation } from '~/lib/dom'
 import { clsxm } from '~/lib/helper'
-import { jotaiStore } from '~/lib/store'
 
 import type { SheetRef } from '../../sheet'
-import { PresentSheet, sheetStackAtom } from '../../sheet'
+import { PresentSheet } from '../../sheet'
 import { MODAL_STACK_Z_INDEX, modalMontionConfig } from './constants'
 import type {
   CurrentModalContentProps,
@@ -84,8 +89,12 @@ export const ModalInternal: Component<{
     title,
     clickOutsideToDismiss,
     modalContainerClassName,
+    modalBodyClassName,
+    modalHeaderClassName,
+    modalDividerClassName,
     wrapper: Wrapper = Fragment,
     max,
+    sheet,
   } = item
   const zIndexStyle = useMemo(
     () => ({ zIndex: MODAL_STACK_Z_INDEX + index + 1 }),
@@ -100,6 +109,24 @@ export const ModalInternal: Component<{
     [close],
   )
   const isMobile = useIsMobile()
+  // Only drawers need manual exit retention; desktop motion handles its own exit.
+  const [isPresent, safeToRemove] = usePresence(isMobile)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  useEffect(() => {
+    if (!isMobile) return
+    if (isPresent) {
+      let cancelled = false
+      nextFrame(() => {
+        if (!cancelled) setSheetOpen(true)
+      })
+      return () => {
+        cancelled = true
+      }
+    }
+    // Keep the portal mounted until Vaul's closing transition finishes.
+    const timeout = setTimeout(() => safeToRemove?.(), 650)
+    return () => clearTimeout(timeout)
+  }, [isMobile, isPresent, safeToRemove])
   const isUnmounted = useIsUnMounted()
   const animateController = useAnimationControls()
   const dragController = useDragControls()
@@ -147,11 +174,11 @@ export const ModalInternal: Component<{
   const ModalProps: ModalContentPropsInternal = useMemo(
     () => ({
       dismiss: () => {
-        sheetRef.current?.dismiss()
-        close()
+        if (isMobile) sheetRef.current?.dismiss()
+        else close()
       },
     }),
-    [close],
+    [close, isMobile],
   )
 
   const ModalContextProps = useMemo<CurrentModalContentProps>(
@@ -172,24 +199,32 @@ export const ModalInternal: Component<{
   const sheetRef = useRef<SheetRef>(null)
 
   if (isMobile) {
-    const drawerLength = jotaiStore.get(sheetStackAtom).length
-
     return (
       <Wrapper>
         <PresentSheet
+          {...sheet}
           ref={sheetRef}
           title={title}
-          defaultOpen
-          zIndex={1000 + drawerLength}
+          open={isPresent && sheetOpen}
+          stackDepth={index}
+          covered={!isTop}
+          zIndex={1000 + index * 2}
           onOpenChange={(open) => {
-            if (!open) {
-              setTimeout(() => {
-                close()
-              }, 1000)
-            }
+            setSheetOpen(open)
+            if (!open) close()
+          }}
+          onAnimationEnd={(open) => {
+            if (!open && !isPresent) safeToRemove?.()
           }}
           content={
-            <div data-window-blocked={isTop ? undefined : ''}>
+            <div
+              data-window-blocked={isTop ? undefined : ''}
+              className={
+                sheet?.touchFriendly
+                  ? 'flex min-h-0 flex-1 flex-col'
+                  : undefined
+              }
+            >
               {finalChildren}
             </div>
           }
@@ -273,21 +308,37 @@ export const ModalInternal: Component<{
                 }}
               >
                 <div
-                  className="relative flex items-center"
+                  className={clsxm(
+                    'relative flex items-center',
+                    modalHeaderClassName,
+                  )}
                   onPointerDown={(e) => dragController.start(e)}
                 >
                   <Dialog.Title className="shrink-0 grow items-center px-4 py-1 text-base font-medium text-zinc-800 dark:text-zinc-100">
                     {title}
                   </Dialog.Title>
-                  <Dialog.DialogClose className="p-2" onClick={close}>
+                  <Dialog.DialogClose
+                    type="button"
+                    aria-label="关闭弹窗"
+                    className="p-2"
+                    onClick={close}
+                  >
                     <CloseIcon />
                   </Dialog.DialogClose>
                 </div>
-                <Divider className="my-2 shrink-0 border-zinc-900/10 dark:border-zinc-100/10" />
+                <Divider
+                  className={clsxm(
+                    'my-2 shrink-0 border-zinc-900/10 dark:border-zinc-100/10',
+                    modalDividerClassName,
+                  )}
+                />
 
                 <m.div
                   layoutScroll
-                  className="min-h-0 shrink grow overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-2"
+                  className={clsxm(
+                    'min-h-0 shrink grow overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 py-2',
+                    modalBodyClassName,
+                  )}
                 >
                   {finalChildren}
                 </m.div>

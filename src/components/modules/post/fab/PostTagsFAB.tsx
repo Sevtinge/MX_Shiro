@@ -2,17 +2,23 @@
 
 import type { TagModel } from '@mx-space/api-client'
 import { useQuery } from '@tanstack/react-query'
+import clsx from 'clsx'
+import { LayoutGroup, m } from 'motion/react'
 import Link from 'next/link'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useId, useState } from 'react'
 
 import { EmptyIcon } from '~/components/icons/empty'
+import { HoverHighlight } from '~/components/modules/post/PostItemHoverOverlay'
 import {
-  ArticleHoverHighlight,
-  HoverHighlight,
-} from '~/components/modules/post/PostItemHoverOverlay'
+  listContainerClassName,
+  listLinkClassName,
+  listScrollClassName,
+} from '~/components/modules/shared/list-highlight-layout'
+import { ListHighlightRow } from '~/components/modules/shared/ListHighlightRow'
 import { FABPortable } from '~/components/ui/fab'
 import { Loading } from '~/components/ui/loading'
 import { useModalStack } from '~/components/ui/modal'
+import { useSheetEntrance } from '~/components/ui/sheet/use-sheet-entrance'
 import { useResetHover } from '~/hooks/common/use-reset-hover'
 import { loadPublishedPostIds } from '~/lib/public-posts'
 import {
@@ -25,16 +31,27 @@ import { routeBuilder, Routes } from '~/lib/route-builder'
 const previewModalClassName =
   'rounded-2xl border-zinc-900/5 bg-gradient-to-b from-zinc-50/95 to-white/95 p-1 shadow-lg shadow-zinc-800/10 ring-1 ring-zinc-900/5 backdrop-blur-md dark:border-zinc-100/10 dark:from-zinc-900/95 dark:to-zinc-800/95 dark:shadow-none dark:ring-zinc-100/10'
 
+export const tagDetailModalOptions = {
+  sheet: { touchFriendly: true },
+  modalClassName: `h-[min(32rem,80vh)] w-[40rem] max-h-[80vh] max-w-[calc(100vw-1.5rem)] lg:max-h-[80vh] lg:max-w-[calc(100vw-1.5rem)] ${previewModalClassName} border-0 p-0`,
+  modalBodyClassName: 'flex flex-col overflow-hidden p-0',
+  modalHeaderClassName:
+    'shrink-0 border-b border-zinc-900/10 dark:border-zinc-100/10 [&>h2]:py-4 [&>button]:mr-3 [&>button]:flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center [&>button]:p-0',
+  modalDividerClassName: 'hidden',
+}
+
 export const PostTagsFAB = () => {
   const { present } = useModalStack()
   return (
     <FABPortable
       onClick={() => {
         present({
+          id: 'post-tag-cloud',
           content: TagsModal,
           clickOutsideToDismiss: true,
           overlay: true,
           title: '标签云',
+          sheet: { touchFriendly: true },
           modalClassName: `w-[42rem] max-w-[calc(100vw-1.5rem)] ${previewModalClassName}`,
         })
       }}
@@ -54,22 +71,35 @@ const TagsModal = () => {
   })
 
   const { present } = useModalStack()
-  const handleTagClick = useCallback((tag: TagModel) => {
-    present({
-      content: () => <TagDetailModal {...tag} />,
-      title: tag.name,
-      clickOutsideToDismiss: true,
-      overlay: true,
-      modalClassName: `w-[28rem] max-w-[calc(100vw-1.5rem)] ${previewModalClassName}`,
-    })
-  }, [])
+  const handleTagClick = useCallback(
+    (tag: TagModel) => {
+      present({
+        id: `post-tag-${tag.name}`,
+        content: () => <TagDetailModal {...tag} />,
+        title: tag.name,
+        ...tagDetailModalOptions,
+        clickOutsideToDismiss: true,
+        overlay: true,
+      })
+    },
+    [present],
+  )
   if (isLoading) return <Loading />
   if (!data) return <EmptyIcon />
   return (
-    <div className="flex flex-wrap gap-2">
-      {data.map((tag) => {
-        return <TagInternal key={tag.name} {...tag} onClick={handleTagClick} />
-      })}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 touch-pan-y flex-wrap content-start gap-3 overflow-y-auto overscroll-contain px-1 py-4 lg:gap-2 lg:py-2">
+        {data.map((tag, index) => {
+          return (
+            <TagInternal
+              key={tag.name}
+              {...tag}
+              index={index + 1}
+              onClick={handleTagClick}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -77,22 +107,29 @@ const TagsModal = () => {
 const TagInternal = memo(function TagInternal(
   props: TagModel & {
     onClick?: (tag: TagModel) => void
+    index: number
   },
 ) {
   const { count, name } = props
+  const entrance = useSheetEntrance(props.index)
 
   const [active, setActive] = useState(false)
   useResetHover(setActive)
 
   return (
-    <button
+    <m.button
+      {...entrance}
       type="button"
       onClick={() => props.onClick?.(props)}
-      onMouseEnter={() => setActive(true)}
-      onMouseLeave={() => setActive(false)}
-      onFocus={() => setActive(true)}
+      onPointerEnter={(event) =>
+        event.pointerType === 'mouse' && setActive(true)
+      }
+      onPointerLeave={() => setActive(false)}
+      onFocus={(event) =>
+        setActive(event.currentTarget.matches(':focus-visible'))
+      }
       onBlur={() => setActive(false)}
-      className={`relative inline-flex items-center gap-1.5 rounded-full bg-zinc-900/[0.03] px-3 py-1.5 text-sm text-zinc-700 ring-1 transition-colors dark:bg-white/[0.04] dark:text-zinc-200 ${active ? 'ring-transparent' : 'ring-zinc-900/10 dark:ring-white/10'}`}
+      className={`relative inline-flex min-h-[44px] max-w-full touch-manipulation select-none items-center gap-2 rounded-full bg-zinc-900/[0.03] px-4 py-2.5 text-left text-[15px] text-zinc-700 ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:bg-zinc-900/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:active:bg-white/10 lg:min-h-0 lg:gap-1.5 lg:px-3 lg:py-1.5 lg:text-sm ${active ? 'ring-transparent' : 'ring-zinc-900/10 dark:ring-white/10'}`}
     >
       <HoverHighlight
         fade
@@ -111,13 +148,16 @@ const TagInternal = memo(function TagInternal(
           {count}
         </span>
       )}
-    </button>
+    </m.button>
   )
 })
 
 const TagPostRow = ({
   item,
   onOpen,
+  index,
+  active,
+  onSelect,
 }: {
   item: {
     id: string
@@ -127,29 +167,27 @@ const TagPostRow = ({
     category: { slug: string }
   }
   onOpen: () => void
+  index: number
+  active: boolean
+  onSelect: () => void
 }) => {
-  const [active, setActive] = useState(false)
-  useResetHover(setActive)
   return (
-    <li
-      className="relative"
-      onMouseEnter={() => setActive(true)}
-      onMouseLeave={() => setActive(false)}
+    <ListHighlightRow
+      active={active}
+      index={index}
+      layoutId="tag-post-highlight"
+      onSelect={onSelect}
     >
-      <ArticleHoverHighlight
-        layoutId="tag-post-highlight"
-        active={active}
-        className="inset-0 z-0 rounded-xl"
-      />
       <Link
         onClick={onOpen}
-        onFocus={() => setActive(true)}
-        onBlur={() => setActive(false)}
         href={routeBuilder(Routes.Post, {
           category: item.category.slug,
           slug: item.slug,
         })}
-        className="relative z-10 flex items-center gap-3 rounded-xl p-2 text-sm text-zinc-700 dark:text-zinc-200"
+        className={clsx(
+          listLinkClassName,
+          'items-center gap-3 text-[16px] text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:bg-zinc-900/5 dark:text-zinc-100 dark:active:bg-white/5 lg:text-sm',
+        )}
       >
         <span className="w-12 shrink-0 text-center text-xs tabular-nums text-zinc-400">
           {new Date(item.created)
@@ -159,14 +197,19 @@ const TagPostRow = ({
             })
             .replace('/', '·')}
         </span>
-        <span className="min-w-0 truncate">{item.title}</span>
+        <span className="line-clamp-2 min-w-0 flex-1 break-words leading-relaxed lg:block lg:truncate">
+          {item.title}
+        </span>
       </Link>
-    </li>
+    </ListHighlightRow>
   )
 }
 
 export const TagDetailModal = (props: { name: string }) => {
   const { name } = props
+  const entrance = useSheetEntrance()
+  const layoutId = useId()
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const { data, isLoading } = useQuery({
     queryKey: [name, 'tag'],
     queryFn: async ({ queryKey }) => {
@@ -188,21 +231,40 @@ export const TagDetailModal = (props: { name: string }) => {
   if (!data) return <EmptyIcon />
 
   return (
-    <ul className="relative isolate space-y-1 px-2">
-      {data
-        .sort(
-          (a, b) =>
-            new Date(b.created).getTime() - new Date(a.created).getTime(),
-        )
-        .map((item) => (
-          <TagPostRow
-            key={item.id}
-            item={item}
-            onOpen={() => {
-              dismissAll()
-            }}
-          />
-        ))}
-    </ul>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <m.div {...entrance} className="mb-4 shrink-0 text-center lg:hidden">
+        <span className="text-[13px] text-zinc-400">
+          共 {data.length} 篇文稿
+        </span>
+      </m.div>
+      <LayoutGroup id={layoutId}>
+        <m.div layoutScroll className={listScrollClassName}>
+          <ul className={listContainerClassName}>
+            {[...data]
+              .sort(
+                (a, b) =>
+                  new Date(b.created).getTime() - new Date(a.created).getTime(),
+              )
+              .map((item, index) => (
+                <TagPostRow
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  active={selectedIndex === index}
+                  onSelect={() => setSelectedIndex(index)}
+                  onOpen={() => {
+                    dismissAll()
+                  }}
+                />
+              ))}
+            {data.length === 0 && (
+              <li className="py-8 text-center text-[14px] text-zinc-400">
+                该标签下暂无文稿
+              </li>
+            )}
+          </ul>
+        </m.div>
+      </LayoutGroup>
+    </div>
   )
 }

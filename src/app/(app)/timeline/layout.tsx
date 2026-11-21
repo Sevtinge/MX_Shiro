@@ -3,7 +3,6 @@ import { dehydrate } from '@tanstack/react-query'
 import type { PropsWithChildren } from 'react'
 
 import { QueryHydrate } from '~/components/common/QueryHydrate'
-import { SearchFAB } from '~/components/modules/shared/SearchFAB'
 import { getPublicTimeline } from '~/lib/public-posts'
 import { getQueryClient } from '~/lib/query-client.server'
 import { definePrerenderPage } from '~/lib/request.server'
@@ -44,8 +43,6 @@ export default definePrerenderPage<{
         })}
       >
         {props.children}
-
-        <SearchFAB />
       </QueryHydrate>
     )
   },
